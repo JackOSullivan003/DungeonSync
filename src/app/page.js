@@ -15,9 +15,9 @@ export default function Home() {
         />
         <ol>
           <li>
-            Get started by editing <code>src/app/page.js</code>.
+            Get started doing <code>src/app/page.js</code>.
           </li>
-          <li>Save the treeeeessss.</li>
+          <li>jombo tronnnnnn.</li>
         </ol>
 
         <div className={styles.ctas}>
@@ -34,7 +34,7 @@ export default function Home() {
               width={20}
               height={20}
             />
-            Hippity Hoppity
+            Hello world
           </a>
           <a
             href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
