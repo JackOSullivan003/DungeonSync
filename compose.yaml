@@ -1,15 +1,6 @@
 # Use root/example as user/password credentials
 services:
 
-  web:
-    build: .
-    container_name: nextjs_app
-    ports:
-      - 80:3000
-    environment:
-      - NODE_ENV=development
-    command: npm run dev
-
   mongo:
     image: mongo
     restart: always
@@ -28,3 +19,12 @@ services:
       ME_CONFIG_MONGODB_ADMINUSERNAME: root
       ME_CONFIG_MONGODB_ADMINPASSWORD: example
       ME_CONFIG_MONGODB_URL: mongodb://root:example@mongo:27017/
+
+  web:
+    build: .
+    container_name: nextjs_app
+    ports:
+      - 80:3000
+    environment:
+      - NODE_ENV=development
+    command: npm run dev
