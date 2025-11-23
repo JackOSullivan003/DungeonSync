@@ -1,4 +1,4 @@
-This is a [Next.js](https://nextjs.org) project run with docker implementation 
+This is a [Next.js](https://nextjs.org) project ran with docker implementation
 
 ## Getting Started for Devs
 
@@ -10,7 +10,13 @@ then in the main folder open a terminal & run the compose.yaml file
 Docker compose up
 ```
 
-Open [http://localhost](http://localhost) with your browser to see the result.
+next open another terminal and run next js 
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
