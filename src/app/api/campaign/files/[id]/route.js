@@ -1,68 +1,64 @@
-import { getCollection } from "@/lib/mongodb";
-import { ObjectId } from "mongodb";
+import { getCollection } from '@/lib/mongodb';
+import { ObjectId } from 'mongodb';
 
-export async function GET(req, context) {
+// GET a single file by ID
+export async function GET(req, { params }) {
   try {
-    const params = await context.params;
-    const { id } = params;
-    const collection = await getCollection("Files");
-    const note = await collection.findOne({
+    const { id } = await params;
+    const collection = await getCollection('Files');
+
+    const file = await collection.findOne({
       _id: new ObjectId(id),
     });
 
-    if (!note) {
-      return Response.json({ error: "File not found" }, { status: 404 });
+    if (!file) {
+      return Response.json({ error: 'File not found' }, { status: 404 });
     }
 
-    return Response.json(note);
+    return Response.json(file);
   } catch (err) {
-    console.error("GET note error:", err);
-    return Response.json({ error: "Server error" }, { status: 500 });
+    console.error('GET file error:', err);
+    return Response.json({ error: 'Server error' }, { status: 500 });
   }
 }
 
-export async function PATCH(req, context) {
+// PATCH (update) a file
+export async function PATCH(req, { params }) {
   try {
-    const params = await context.params;
-    const { id } = params;
-    const collection = await getCollection("Files");
+    const { id } = await params;
     const body = await req.json();
+    const collection = await getCollection('Files');
+
+    const updatePayload = {
+      ...(body.title && { title: body.title }),
+      ...(body.content && { content: body.content }),
+      ...(body.folderId && { folderId: new ObjectId(body.folderId) }),
+      updatedAt: Date.now(),
+    };
 
     await collection.updateOne(
       { _id: new ObjectId(id) },
-      {
-        $set: {
-          title: body.title,
-          content: body.content,
-          updatedAt: Date.now(),
-        },
-      }
+      { $set: updatePayload }
     );
 
-    const updated = await collection.findOne({
-      _id: new ObjectId(id),
-    });
-
+    const updated = await collection.findOne({ _id: new ObjectId(id) });
     return Response.json(updated);
   } catch (err) {
-    console.error("PATCH note error:", err);
-    return Response.json({ error: "Server error" }, { status: 500 });
+    console.error('PATCH file error:', err);
+    return Response.json({ error: 'Server error' }, { status: 500 });
   }
 }
 
-export async function DELETE(req, context) {
+// DELETE a file
+export async function DELETE(req, { params }) {
   try {
-    const params = await context.params;
-    const { id } = params;
-    const collection = await getCollection("Files");
+    const { id } = await params;
+    const collection = await getCollection('Files');
 
-    await collection.deleteOne({
-      _id: new ObjectId(id),
-    });
-
+    await collection.deleteOne({ _id: new ObjectId(id) });
     return Response.json({ deleted: true });
   } catch (err) {
-    console.error("DELETE note error:", err);
-    return Response.json({ error: "Server error" }, { status: 500 });
+    console.error('DELETE file error:', err);
+    return Response.json({ error: 'Server error' }, { status: 500 });
   }
 }

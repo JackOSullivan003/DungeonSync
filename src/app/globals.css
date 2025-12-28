@@ -1,3 +1,5 @@
+@import '../../node_modules/@mdxeditor/editor/dist/style.css';
+
 :root {
   --foreground: #171717;
 }
@@ -21,54 +23,229 @@ body {
   margin: 0;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-.page-container {
+.app-wrapper {
   display: flex;
   flex-direction: column;
-  height: 100vh; /* full viewport height */
+  height: 100vh;
 }
 
+/* Top bar container */
 .topbar {
-  height: 50px;
-  background-color: #333;
-  color: white;
+  height: 52px;
+  background: #0f0f0f;
+  border-bottom: 2px solid #000;
   display: flex;
   align-items: center;
-  padding: 0 0.75rem;
-  font-weight: bold;
+  justify-content: space-between;
+  padding: 0 1.4rem;
+}
+
+/* Left title */
+.topbar-title {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: white;
+}
+
+/* Profile button */
+.profile-btn {
+  background: none;
+  border: none;
+  color: #ccc;
+  cursor: pointer;
+  padding: 4px;
+}
+
+.profile-btn:hover {
+  color: white;
+}
+
+/* Dropdown */
+.profile-menu {
+  position: relative;
+}
+
+.profile-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 6px;
+  min-width: 160px;
+  padding: 4px;
+  z-index: 50;
+}
+
+/* Dropdown buttons */
+.profile-dropdown button {
+  width: 100%;
+  background: none;
+  border: none;
+  color: white;
+  padding: 8px 10px;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.profile-dropdown button:hover {
+  background: #2a2a2a;
+}
+
+/* Divider */
+.profile-dropdown .divider {
+  height: 1px;
+  background: #333;
+  margin: 6px 0;
+}
+
+/* Logout emphasis */
+.profile-dropdown .danger {
+  color: #ff6b6b;
+}
+
+.profile-dropdown .danger:hover {
+  background: rgba(255, 107, 107, 0.15);
 }
 
 
 /* Whole 3-column layout */
 .layout-container {
   display: grid;
-  grid-template-columns: 300px 1fr 300px; /* Left | Middle | Right */
-  height: 100%;
+  grid-template-columns: 320px 1fr 250px; /* Left | Middle | Right */
+  flex: 1;
+  min-height: 0;
 }
 
-/* Left sidebar */
-.left-sidebar {
-  border-right: 2px solid #111111;
-  background: #999999;
+/* Left filesidebar */
+.file-sidebar {
+  border-right: 2px solid #000000;
+  background: #111111;
   overflow-y: auto;
-  padding-left: 2.5rem;
+  padding-inline: 1.6rem;
   padding-top: 1rem;
 }
 
-/* Middle editor area */
-.main-content {
-  overflow-y: auto;
-  padding: 1rem;
+.file-sidebar button {
+  text-align: center;
+  border-style: none;
+  margin-right: 3px;
+  background-color: #111111;
+  width: 12x;
+  color: white;
+  
 }
 
+/* Shared filesidebar node styles */
+
+.file-sidebar-node {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  position: relative;
+  transition: background-color 0.12s ease;
+}
+
+/* Hover highlight */
+.file-sidebar-node:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Active (selected file) */
+.file-sidebar-node.active {
+  background-color: rgba(255, 255, 255, 0.16);
+  font-weight: 600;
+}
+
+/* Label (icon + text) */
+.file-sidebar-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+/* Dot menu (folders + files) */
+
+.file-sidebar-menu {
+  position: relative;
+}
+
+.file-sidebar-dots-btn {
+  opacity: 0;
+  background: transparent;
+  border: none;
+  color: #aaa;
+  cursor: pointer;
+  padding: 2px;
+}
+
+/* Show dots on hover OR active */
+.file-sidebar-row:hover .file-sidebar-dots-btn,
+.file-sidebar-row.active .file-sidebar-dots-btn {
+  opacity: 1;
+}
+
+/* Popup menu */
+.file-sidebar-menu-popup {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 4px;
+  padding: 4px;
+  z-index: 20;
+  min-width: 140px;
+}
+
+/* Menu buttons */
+.file-sidebar-menu-popup button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  background: none;
+  border: none;
+  color: white;
+  padding: 4px 6px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.file-sidebar-menu-popup button:hover {
+  background: #2a2a2a;
+}
+
+
+
 /* Right sidebar (chat) */
-.right-sidebar {
+.chatsidebar {
   border-left: 1px solid #ccc;
   background: #888888;
   overflow-y: auto;
   padding: 1rem;
+}
+
+/* MDXEditor dark theme */
+.mdx-editor {
+  color: #ffffff !important;
+  background-color: #1e1e1e;
+  caret-color: #ffffff;
+  padding-inline: 1rem;
+}
+
+ .mdx-editor blockquote { 
+   border-left: 3px solid #444; 
+   padding-left: 1rem; 
+   color: #cc11ee; 
+ } 
+
+.mdx-editor a {
+  color: #31a2ff;
+  text-decoration-line: underline;
 }

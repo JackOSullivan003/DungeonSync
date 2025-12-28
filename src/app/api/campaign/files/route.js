@@ -1,36 +1,40 @@
-import { getCollection } from "@/lib/mongodb";
+import { getCollection } from '@/lib/mongodb';
+import { ObjectId } from 'mongodb';
+
 
 export async function GET() {
   try {
     const collection = await getCollection("Files");
-    const notes = await collection
-      .find({})
-      .sort({ updatedAt: -1 })
-      .toArray();
+    const files = await collection.find({}).toArray();
 
-    return Response.json(notes);
+    return Response.json(files);
   } catch (err) {
-    console.error("GET /api/notes error:", err);
-    return Response.json([], { status: 500 }); // always return an array
+    console.error("GET files error:", err);
+    return Response.json({ error: "Server error" }, { status: 500 });
   }
 }
 
+
 export async function POST(req) {
   try {
-    const collection = await getCollection("Files");
-    const { title } = await req.json();
+    const body = await req.json();
+    const { title = "Untitled", folderId = null } = body;
 
-    const newNote = {
+    const collection = await getCollection("Files");
+
+    const newFile = {
       title,
       content: "",
+      folderId: folderId ? new ObjectId(folderId) : null,
       updatedAt: Date.now(),
     };
 
-    const result = await collection.insertOne(newNote);
+    const result = await collection.insertOne(newFile);
+    newFile._id = result.insertedId;
 
-    return Response.json({ ...newNote, _id: result.insertedId });
+    return Response.json(newFile);
   } catch (err) {
-    console.error("POST /api/files error:", err);
-    return Response.json({ error: "Failed to create file" }, { status: 500 });
+    console.error("POST file error:", err);
+    return Response.json({ error: "Server error" }, { status: 500 });
   }
 }
