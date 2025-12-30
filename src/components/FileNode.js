@@ -18,6 +18,11 @@ export default function FileNode({
 
   const menuRef = useRef(null)
 
+  useEffect(() => {
+    setTitle(node.title)
+  }, [node.title])
+  
+  
   const handleRename = async () => {
     setIsRenaming(false)
     if (title !== node.title) {
@@ -78,6 +83,7 @@ export default function FileNode({
               onClick={(e) => {
                 e.stopPropagation()
                 setMenuOpen(false)
+                setTitle(node.title)
                 setIsRenaming(true)
               }}
             >

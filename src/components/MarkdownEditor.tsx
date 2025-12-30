@@ -20,6 +20,7 @@ import {
 interface MarkdownEditorProps extends MDXEditorProps {
   campaignId: string
   currentFileId: string | null
+  fileFromSidebar
   onTitleChange?: (id: string, title: string) => void
   onDirtyChange?: (dirty: boolean) => void
   registerFlush?: (fn: () => Promise<void>) => void
@@ -36,6 +37,7 @@ interface File {
 export default function MarkdownEditor({
   campaignId,
   currentFileId,
+  fileFromSidebar,
   onTitleChange = () => {},
   onDirtyChange = () => {},
   registerFlush = () => {},
@@ -45,21 +47,31 @@ export default function MarkdownEditor({
   const [file, setFile] = useState<File | null>(null)
   const saveTimeout = useRef<NodeJS.Timeout | null>(null)
 
+  useEffect(() => {
+    if (!fileFromSidebar) return
+    setFile(prev =>
+      prev && prev._id === fileFromSidebar._id
+        ? { ...prev, title: fileFromSidebar.title }
+        : prev
+    )
+  }, [fileFromSidebar])
+
+
   /** Save file to server */
   const saveFile = useCallback(
     async (changes: Partial<File>) => {
       if (!file) return
-    
+
       // Merge current file with changes to avoid losing content/title
       const payload = { ...file, ...changes, lastKnownUpdatedAt: file.updatedAt }
-    
+
       try {
         const res = await fetch(`/api/files/${file._id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         })
-      
+
         if (!res.ok) throw new Error('Failed to save file')
         const updated: File = await res.json()
         setFile(updated)

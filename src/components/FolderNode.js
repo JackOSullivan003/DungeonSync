@@ -9,11 +9,12 @@ import NewFileIcon from '@mui/icons-material/NoteAdd'
 
 export default function FolderNode({
   node,
-  onCreateNode,
-  onDeleteNode,
-  onRenameNode,
+  onCreateFile,
+  onCreateFolder,
+  onRename,
+  onDelete,
   onSelect,
-  currentNoteId
+  currentFileId
 }) {
   const [expanded, setExpanded] = useState(false)
   const [isRenaming, setIsRenaming] = useState(false)
@@ -22,13 +23,22 @@ export default function FolderNode({
 
   const menuRef = useRef(null)
 
-  const handleRename = async () => {
+  /* Sync title when parent updates */
+  useEffect(() => {
+    setTitle(node.title)
+  }, [node.title])
+
+  /* Handle rename */
+  async function handleRename() {
     setIsRenaming(false)
-    if (title !== node.title) {
-      await onRenameNode(node._id, title)
+    if (title.trim() && title !== node.title) {
+      await onRename(node._id, title)
+    } else {
+      setTitle(node.title)
     }
   }
 
+  /* Close menu on outside click */
   useEffect(() => {
     if (!menuOpen) return
 
@@ -48,9 +58,10 @@ export default function FolderNode({
       <div className="file-sidebar-row file-sidebar-node">
         <div
           className="file-sidebar-label"
-          onClick={() => setExpanded(!expanded)}
+          onClick={() => setExpanded((v) => !v)}
         >
           <FolderIcon fontSize="small" />
+
           {isRenaming ? (
             <input
               value={title}
@@ -65,13 +76,13 @@ export default function FolderNode({
           )}
         </div>
 
-        {/* Menu */}
+        {/* Context menu */}
         <div ref={menuRef} className="file-sidebar-menu">
           <button
             className="file-sidebar-dots-btn"
             onClick={(e) => {
               e.stopPropagation()
-              setMenuOpen(!menuOpen)
+              setMenuOpen((v) => !v)
             }}
           >
             <MoreVertIcon fontSize="small" />
@@ -82,10 +93,8 @@ export default function FolderNode({
               <button
                 onClick={() => {
                   setMenuOpen(false)
-                  onCreateNode({
-                    parentId: node._id,
-                    nodeType: 'file'
-                  })
+                  onCreateFile(node._id)
+                  setExpanded(true)
                 }}
               >
                 <NewFileIcon fontSize="small" /> New File
@@ -94,10 +103,8 @@ export default function FolderNode({
               <button
                 onClick={() => {
                   setMenuOpen(false)
-                  onCreateNode({
-                    parentId: node._id,
-                    nodeType: 'folder'
-                  })
+                  onCreateFolder(node._id)
+                  setExpanded(true)
                 }}
               >
                 <CreateNewFolderIcon fontSize="small" /> New Folder
@@ -106,6 +113,7 @@ export default function FolderNode({
               <button
                 onClick={() => {
                   setMenuOpen(false)
+                  setTitle(node.title)
                   setIsRenaming(true)
                 }}
               >
@@ -115,7 +123,7 @@ export default function FolderNode({
               <button
                 onClick={() => {
                   setMenuOpen(false)
-                  onDeleteNode(node._id)
+                  onDelete(node._id)
                 }}
               >
                 Delete
@@ -133,9 +141,10 @@ export default function FolderNode({
               <FolderNode
                 key={child._id}
                 node={child}
-                onCreateNode={onCreateNode}
-                onDeleteNode={onDeleteNode}
-                onRenameNode={onRenameNode}
+                onCreateFile={onCreateFile}
+                onCreateFolder={onCreateFolder}
+                onRename={onRename}
+                onDelete={onDelete}
                 onSelect={onSelect}
                 currentFileId={currentFileId}
               />
@@ -145,8 +154,8 @@ export default function FolderNode({
                 node={child}
                 onSelect={onSelect}
                 currentFileId={currentFileId}
-                onRenameNode={onRenameNode}
-                onDeleteNode={onDeleteNode}
+                onRenameFile={onRename}
+                onDeleteFile={onDelete}
               />
             )
           )}
