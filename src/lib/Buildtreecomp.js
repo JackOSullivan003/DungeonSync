@@ -1,30 +1,18 @@
-export default function buildTree(folders = [], files = []) {
+export default function buildTree(nodes) {
+  const map = new Map()
+  const roots = []
 
-    const folderMap = {}
-    const root = []
+  nodes.forEach((node) => {
+    map.set(node._id, { ...node, children: [] })
+  })
 
-    if (!Array.isArray(folders)) folders = []
-    if (!Array.isArray(files)) files = []
+  nodes.forEach((node) => {
+    if (node.parentId) {
+      map.get(node.parentId)?.children.push(map.get(node._id))
+    } else {
+      roots.push(map.get(node._id))
+    }
+  })
 
-    folders.forEach(f => {
-      folderMap[f._id] = { ...f, folders: [], files: [] }
-    })
-
-    files.forEach(file => {
-      if (file.folderId && folderMap[file.folderId]) {
-        folderMap[file.folderId].files.push(file)
-      } else {
-        root.push(file)
-      }
-    })
-
-    folders.forEach(f => {
-      if (f.parentId && folderMap[f.parentId]) {
-        folderMap[f.parentId].folders.push(folderMap[f._id])
-      } else {
-        root.push(folderMap[f._id])
-      }
-    })
-
-    return root
+  return roots
 }

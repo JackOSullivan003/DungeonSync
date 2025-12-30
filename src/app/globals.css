@@ -133,12 +133,13 @@ body {
   margin-right: 3px;
   background-color: #111111;
   width: 12x;
+  margin-inline: 2
+  px;
   color: white;
-  
+  cursor: pointer;
 }
 
 /* Shared filesidebar node styles */
-
 .file-sidebar-node {
   display: flex;
   align-items: center;
@@ -170,11 +171,6 @@ body {
 }
 
 /* Dot menu (folders + files) */
-
-.file-sidebar-menu {
-  position: relative;
-}
-
 .file-sidebar-dots-btn {
   opacity: 0;
   background: transparent;
@@ -232,20 +228,20 @@ body {
 }
 
 /* MDXEditor dark theme */
-.mdx-editor {
+.mdxeditor-content {
   color: #ffffff !important;
   background-color: #1e1e1e;
   caret-color: #ffffff;
   padding-inline: 1rem;
 }
 
- .mdx-editor blockquote { 
+ .mdxeditor blockquote { 
    border-left: 3px solid #444; 
    padding-left: 1rem; 
    color: #cc11ee; 
  } 
 
-.mdx-editor a {
+.mdxeditor a {
   color: #31a2ff;
   text-decoration-line: underline;
 }

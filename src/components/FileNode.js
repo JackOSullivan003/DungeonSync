@@ -1,32 +1,47 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import FileIcon from '@mui/icons-material/Description'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 
 export default function FileNode({
-  file,
+  node,
   onSelect,
-  currentNoteId,
+  currentFileId,
   onRenameFile,
   onDeleteFile
 }) {
-  const isActive = file._id === currentNoteId
+  const isActive = node._id === currentFileId
   const [menuOpen, setMenuOpen] = useState(false)
   const [isRenaming, setIsRenaming] = useState(false)
-  const [title, setTitle] = useState(file.title)
+  const [title, setTitle] = useState(node.title)
+
+  const menuRef = useRef(null)
 
   const handleRename = async () => {
     setIsRenaming(false)
-    if (title !== file.title) {
-      await onRenameFile(file._id, title)
+    if (title !== node.title) {
+      await onRenameFile(node._id, title)
     }
   }
+
+  useEffect(() => {
+    if (!menuOpen) return
+
+    const handleClickOutside = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [menuOpen])
 
   return (
     <div
       className={`file-sidebar-row file-sidebar-node ${isActive ? 'active' : ''}`}
-      onClick={() => onSelect(file._id)}
+      onClick={() => onSelect(node._id)}
     >
       <div className="file-sidebar-label">
         <FileIcon fontSize="small" />
@@ -39,13 +54,14 @@ export default function FileNode({
             onKeyDown={(e) => e.key === 'Enter' && handleRename()}
             autoFocus
             onClick={(e) => e.stopPropagation()}
+            style={{ width: '100%' }}
           />
         ) : (
-          <span>{file.title}</span>
+          <span>{node.title}</span>
         )}
       </div>
 
-      <div className="file-sidebar-menu">
+      <div ref={menuRef} className="file-sidebar-menu">
         <button
           className="file-sidebar-dots-btn"
           onClick={(e) => {
@@ -72,7 +88,7 @@ export default function FileNode({
               onClick={(e) => {
                 e.stopPropagation()
                 setMenuOpen(false)
-                onDeleteFile(file._id)
+                onDeleteFile(node._id)
               }}
             >
               Delete
