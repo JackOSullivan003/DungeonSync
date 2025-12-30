@@ -38,6 +38,26 @@ export default function FileSidebar({ campaignId, files, setFiles, onSelect, cur
     onSelect(created._id.toString())
   }
 
+  async function onCreateFolder(parentId = null) {
+    if (!campaignId) return console.error('campaignId undefined')
+
+    const res = await fetch(`/api/campaign/${campaignId}/files`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: 'New Folder',
+        parentId,
+        nodeType: 'folder'
+      })
+    })
+
+    const created = await res.json()
+    setFiles((prev) => [...prev, created])
+  }
+
+  
+
+
   async function onDeleteFile(id) {
     if (!confirm('Delete this item?')) return
     await fetch(`/api/files/${id}`, { method: 'DELETE' })

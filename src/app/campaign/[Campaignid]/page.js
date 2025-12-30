@@ -9,9 +9,11 @@ export default function CampaignPage({ params }) {
   const campaignId = use(params).Campaignid
   //console.log("campaignPage campaignId: ", campaignId)
 
-    const [files, setFiles] = useState([])
+  const [files, setFiles] = useState([])
   const [currentFileId, setCurrentFileId] = useState(null)
   const [isDirty, setIsDirty] = useState(false)
+  const activeFile = files.find(f => f._id === currentFileId)
+
 
   const flushRef = useRef(null)
 
@@ -56,6 +58,7 @@ export default function CampaignPage({ params }) {
           <MarkdownEditor
             campaignId={campaignId}
             currentFileId={currentFileId}
+            fileFromSidebar={activeFile}
             onTitleChange={handleTitleChange}
             onDirtyChange={setIsDirty}
             registerFlush={(fn) => (flushRef.current = fn)}
