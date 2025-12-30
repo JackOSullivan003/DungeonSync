@@ -9,21 +9,24 @@ import {
   linkPlugin,
   linkDialogPlugin,
   markdownShortcutPlugin,
-  UndoRedo, BoldItalicUnderlineToggles, toolbarPlugin,
+  UndoRedo,
+  BoldItalicUnderlineToggles,
+  toolbarPlugin,
   MDXEditor,
   MDXEditorMethods,
   MDXEditorProps
 } from '@mdxeditor/editor'
 
-interface MarkdownEditorProps extends MDXEditorProps{
-  noteId: string
-  onTitleChange: (id: string, title: string) => void
-  onDirtyChange: (dirty: boolean) => void
-  registerFlush: (fn: () => Promise<void>) => void
-  editorRef?: React.RefObject<MDXEditorMethods | null>;
+interface MarkdownEditorProps extends MDXEditorProps {
+  campaignId: string
+  currentFileId: string | null
+  onTitleChange?: (id: string, title: string) => void
+  onDirtyChange?: (dirty: boolean) => void
+  registerFlush?: (fn: () => Promise<void>) => void
+  editorRef?: React.RefObject<MDXEditorMethods | null>
 }
 
-interface Note {
+interface File {
   _id: string
   title: string
   content: string
@@ -31,69 +34,95 @@ interface Note {
 }
 
 export default function MarkdownEditor({
-  noteId,
-  onTitleChange,
-  onDirtyChange,
-  registerFlush,
+  campaignId,
+  currentFileId,
+  onTitleChange = () => {},
+  onDirtyChange = () => {},
+  registerFlush = () => {},
   editorRef,
   ...props
-} : MarkdownEditorProps) {
-  const [note, setNote] = useState<Note | null>(null)
+}: MarkdownEditorProps) {
+  const [file, setFile] = useState<File | null>(null)
   const saveTimeout = useRef<NodeJS.Timeout | null>(null)
 
-  // Debounced save
-  const debounceSave = useCallback((changes: Partial<Note>) => {
-    onDirtyChange(true)
-    if (saveTimeout.current) clearTimeout(saveTimeout.current)
-    saveTimeout.current = setTimeout(() => {
-      saveNote(changes)
-    }, 1200)
-  }, [note])
+  /** Save file to server */
+  const saveFile = useCallback(
+    async (changes: Partial<File>) => {
+      if (!file) return
+    
+      // Merge current file with changes to avoid losing content/title
+      const payload = { ...file, ...changes, lastKnownUpdatedAt: file.updatedAt }
+    
+      try {
+        const res = await fetch(`/api/files/${file._id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+      
+        if (!res.ok) throw new Error('Failed to save file')
+        const updated: File = await res.json()
+        setFile(updated)
+        onDirtyChange(false)
+      } catch (err) {
+        console.error('Failed to save file:', err)
+      }
+    },
+    [file, onDirtyChange]
+  )
 
+  /** Debounced save */
+  const debounceSave = useCallback(
+    (changes: Partial<File>) => {
+      onDirtyChange(true)
+      if (saveTimeout.current) clearTimeout(saveTimeout.current)
+      saveTimeout.current = setTimeout(() => saveFile(changes), 1200)
+    },
+    [saveFile, onDirtyChange]
+  )
+
+  /** Flush pending changes */
   const flushSave = useCallback(async () => {
-    if (!note) return
+    if (!file) return
     if (saveTimeout.current) clearTimeout(saveTimeout.current)
-    await saveNote(note)
-  }, [note])
+    await saveFile(file)
+  }, [file, saveFile])
 
+  /** Register flush with parent */
   useEffect(() => {
     registerFlush(flushSave)
-  }, [flushSave])
+  }, [flushSave, registerFlush])
 
+  /** Load file whenever currentFileId changes */
   useEffect(() => {
-    if (!noteId) return
-    async function loadNote() {
-      const res = await fetch(`/api/campaign/files/${noteId}`)
-      const data: Note = await res.json()
-      setNote(data)
-      onDirtyChange(false)
+    if (!currentFileId || !campaignId) return
+
+    async function loadFile() {
+      try {
+        console.log('Loading file for id:', currentFileId)
+        const res = await fetch(`/api/files/${currentFileId}`)
+        if (!res.ok) throw new Error('File not found')
+        const data: File = await res.json()
+        setFile(data)
+        onDirtyChange(false)
+      } catch (err) {
+        console.error('Failed to load file:', err)
+      }
     }
-    loadNote()
-  }, [noteId])
 
-  async function saveNote(changes: Partial<Note>) {
-    if (!note) return
-    const payload = { ...note, ...changes, lastKnownUpdatedAt: note.updatedAt }
-    const res = await fetch(`/api/campaign/files/${noteId}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
-    })
-    const updated: Note = await res.json()
-    setNote(updated)
-    onDirtyChange(false)
-  }
+    loadFile()
+  }, [currentFileId, campaignId, onDirtyChange])
 
-  if (!note) return <div style={{ padding: 20 }}>Loading…</div>
+  if (!file) return <div style={{ padding: 20 }}>Loading…</div>
 
   return (
     <div style={{ height: '100%', background: '#1e1e1e', color: 'white' }}>
       <input
-        value={note.title || ''}
+        value={file.title ?? ''}
         onChange={(e) => {
           const title = e.target.value
-          setNote({ ...note, title })
-          onTitleChange(note._id, title)
+          setFile({ ...file!, title })
+          onTitleChange(file._id, title)
           debounceSave({ title })
         }}
         style={{
@@ -109,28 +138,26 @@ export default function MarkdownEditor({
       />
 
       <MDXEditor
-        key={note._id}
-        markdown={note.content || ''}
+        key={file._id} // ensures editor refreshes on new file
+        markdown={file.content || ''}
         onChange={(md) => debounceSave({ content: md })}
-        contentEditableClassName="mdx-editor"
+        contentEditableClassName="mdxeditor-content"
         plugins={[
-          // Example Plugin Usage
           headingsPlugin(),
           listsPlugin(),
           quotePlugin(),
           toolbarPlugin({
-          toolbarClassName: 'my-classname',
-          toolbarContents: () => (
-            <>
-              <UndoRedo />
-              <BoldItalicUnderlineToggles />
-            </>
-          )
-        }),
+            toolbarContents: () => (
+              <>
+                <UndoRedo />
+                <BoldItalicUnderlineToggles />
+              </>
+            ),
+          }),
           thematicBreakPlugin(),
           linkPlugin(),
           linkDialogPlugin(),
-          markdownShortcutPlugin()
+          markdownShortcutPlugin(),
         ]}
         {...props}
         ref={editorRef}

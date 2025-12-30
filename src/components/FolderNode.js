@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import FileNode from './FileNode'
 import FolderIcon from '@mui/icons-material/Folder'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
@@ -9,28 +9,42 @@ import NewFileIcon from '@mui/icons-material/NoteAdd'
 
 export default function FolderNode({
   node,
-  onCreateFile,
-  onCreateFolder,
-  onDeleteFolder,
-  onRenameFolder,
+  onCreateNode,
+  onDeleteNode,
+  onRenameNode,
   onSelect,
-  currentNoteId,
-  onDeleteFile
+  currentNoteId
 }) {
   const [expanded, setExpanded] = useState(false)
   const [isRenaming, setIsRenaming] = useState(false)
   const [title, setTitle] = useState(node.title)
   const [menuOpen, setMenuOpen] = useState(false)
 
+  const menuRef = useRef(null)
+
   const handleRename = async () => {
     setIsRenaming(false)
     if (title !== node.title) {
-      await onRenameFolder(node._id, title)
+      await onRenameNode(node._id, title)
     }
   }
 
+  useEffect(() => {
+    if (!menuOpen) return
+
+    function handleClickOutside(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) {
+        setMenuOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [menuOpen])
+
   return (
     <div>
+      {/* Folder row */}
       <div className="file-sidebar-row file-sidebar-node">
         <div
           className="file-sidebar-label"
@@ -47,11 +61,12 @@ export default function FolderNode({
               onClick={(e) => e.stopPropagation()}
             />
           ) : (
-            <span>{title}</span>
+            <span>{node.title}</span>
           )}
         </div>
 
-        <div className="file-sidebar-menu">
+        {/* Menu */}
+        <div ref={menuRef} className="file-sidebar-menu">
           <button
             className="file-sidebar-dots-btn"
             onClick={(e) => {
@@ -64,69 +79,77 @@ export default function FolderNode({
 
           {menuOpen && (
             <div className="file-sidebar-menu-popup">
-                <button 
-                  onClick={() => {
-                    setMenuOpen(false)
-                    onCreateFile(node._id)
-                  }}
-                >
-                  <NewFileIcon fontSize="small" /> New File
-                </button>   
-                <button onClick={() => {
-                    setMenuOpen(false)
-                    onCreateFolder(node._id)
-                  }}
-                >
-                  <CreateNewFolderIcon fontSize="small" /> New Folder
-                </button>   
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setMenuOpen(false)
-                    setIsRenaming(true)
-                  }}
-                >
-                  Rename
-                </button>
+              <button
+                onClick={() => {
+                  setMenuOpen(false)
+                  onCreateNode({
+                    parentId: node._id,
+                    nodeType: 'file'
+                  })
+                }}
+              >
+                <NewFileIcon fontSize="small" /> New File
+              </button>
 
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    setMenuOpen(false)
-                    onDeleteFile(file._id)
-                  }}
-                >
-                  Delete
-                </button>
+              <button
+                onClick={() => {
+                  setMenuOpen(false)
+                  onCreateNode({
+                    parentId: node._id,
+                    nodeType: 'folder'
+                  })
+                }}
+              >
+                <CreateNewFolderIcon fontSize="small" /> New Folder
+              </button>
+
+              <button
+                onClick={() => {
+                  setMenuOpen(false)
+                  setIsRenaming(true)
+                }}
+              >
+                Rename
+              </button>
+
+              <button
+                onClick={() => {
+                  setMenuOpen(false)
+                  onDeleteNode(node._id)
+                }}
+              >
+                Delete
+              </button>
             </div>
           )}
         </div>
       </div>
 
-      {expanded && (
+      {/* Children */}
+      {expanded && node.children?.length > 0 && (
         <div style={{ paddingLeft: 16 }}>
-          {node.folders?.map(folder => (
-            <FolderNode key={folder._id} {...{
-              node: folder,
-              onCreateFile,
-              onCreateFolder,
-              onDeleteFolder,
-              onRenameFolder,
-              onSelect,
-              currentNoteId,
-              onDeleteFile
-            }} />
-          ))}
-
-          {node.files?.map(file => (
-            <FileNode
-              key={file._id}
-              file={file}
-              onSelect={onSelect}
-              currentNoteId={currentNoteId}
-              onDeleteFile={onDeleteFile}
-            />
-          ))}
+          {node.children.map((child) =>
+            child.nodeType === 'folder' ? (
+              <FolderNode
+                key={child._id}
+                node={child}
+                onCreateNode={onCreateNode}
+                onDeleteNode={onDeleteNode}
+                onRenameNode={onRenameNode}
+                onSelect={onSelect}
+                currentFileId={currentFileId}
+              />
+            ) : (
+              <FileNode
+                key={child._id}
+                node={child}
+                onSelect={onSelect}
+                currentFileId={currentFileId}
+                onRenameNode={onRenameNode}
+                onDeleteNode={onDeleteNode}
+              />
+            )
+          )}
         </div>
       )}
     </div>
