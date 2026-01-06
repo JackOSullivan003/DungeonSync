@@ -1,16 +1,19 @@
 'use client'
 
-import ProfileMenu from './ProfileMenu'
+export default function TopBar({ left, title, right }) {
 
-export default function TopBar({ title }) {
   return (
     <header className="topbar">
       <div className="topbar-left">
-        <span className="topbar-title">{title}</span>
+        {left}
+      </div>
+
+      <div className="topbar-title">
+        {title}
       </div>
 
       <div className="topbar-right">
-        <ProfileMenu />
+        {right}
       </div>
     </header>
   )

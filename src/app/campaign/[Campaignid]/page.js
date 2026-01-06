@@ -1,23 +1,53 @@
 'use client'
 
 import { useEffect, useState, useRef, use } from 'react'
+import { useRouter } from 'next/navigation'
 import MarkdownEditor from '@/components/MarkdownEditor'
 import FileSidebar from '@/components/FileSidebar'
 import TopBar from '@/components/TopBar'
+import ProfileMenu from '@/components/ProfileMenu'
 
 export default function CampaignPage({ params }) {
-  const campaignId = use(params).Campaignid
-  //console.log("campaignPage campaignId: ", campaignId)
+  console.log(use(params))
+  const campaignId = use(params).campaignid
+  console.log("campaignPage campaignId: ", campaignId)
+
+  const router = useRouter()
+
+  const [campaignTitle, setCampaignTitle] = useState('Loading…')
+  const [editingTitle, setEditingTitle] = useState(false)
 
   const [files, setFiles] = useState([])
   const [currentFileId, setCurrentFileId] = useState(null)
   const [isDirty, setIsDirty] = useState(false)
   const activeFile = files.find(f => f._id === currentFileId)
 
-
   const flushRef = useRef(null)
 
-  /* ---------- Safe file switch ---------- */
+  // Load campaign
+  useEffect(() => {
+    async function loadCampaign() {
+      const res = await fetch(`/api/campaign/${campaignId}`)
+      const campaign = await res.json()
+      console.log(campaign)
+      setCampaignTitle(campaign.title)
+    }
+
+    loadCampaign()
+  }, [campaignId])
+
+  // Save campaign title
+  async function saveCampaignTitle() {
+    setEditingTitle(false)
+
+    await fetch(`/api/campaign/${campaignId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title: campaignTitle })
+    })
+  }
+
+  // Safe file switch
   async function switchFile(id) {
     if (isDirty && flushRef.current) {
       await flushRef.current()
@@ -33,7 +63,6 @@ export default function CampaignPage({ params }) {
     )
   }
 
-
   useEffect(() => {
     if (!currentFileId) return
     console.log('currentFileId updated:', currentFileId)
@@ -41,7 +70,41 @@ export default function CampaignPage({ params }) {
 
   return (
     <div className="app-wrapper">
-      <TopBar title="Test Campaign" />
+      <TopBar
+        left={
+          <div>
+            <button
+                className="topbar-back-btn"
+                onClick={() => router.push('/dashboard')}
+              >
+              ← Dashboard
+            </button>
+          </div>
+        }
+        title={
+          editingTitle ? (
+            <input
+              className="campaign-title-input"
+              value={campaignTitle}
+              autoFocus
+              onChange={(e) => setCampaignTitle(e.target.value)}
+              onBlur={saveCampaignTitle}
+              onKeyDown={(e) => e.key === 'Enter' && saveCampaignTitle()}
+            />
+          ) : (
+            <span
+              className="campaign-title-text"
+              onClick={() => setEditingTitle(true)}
+              title="Click to rename campaign"
+            >
+              {campaignTitle}
+            </span>
+          )
+        }
+        right={
+            <ProfileMenu />
+        }
+      />
 
       <div className="layout-container">
         {/* Sidebar */}
