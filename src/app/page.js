@@ -1,5 +1,21 @@
-import { redirect } from "next/navigation";
+"use client";
+
+import TopBar from '@/components/TopBar';
+import { useRouter } from "next/navigation";
+
 
 export default function Home() {
-  redirect("/register");
+  const router = useRouter();
+  
+  return (
+    <div>
+    
+    <TopBar title = {"DungeonSync"}/>
+
+    <div>
+      <button onClick={() => router.push("/register")}>Register</button>
+      <button onClick={() => router.push("/login")}>Login</button>
+    </div>
+    </div>
+  )
 }

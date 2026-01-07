@@ -1,17 +1,21 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Button from "@mui/material/Button";
-import TextField from "@mui/material/TextField";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import Checkbox from "@mui/material/Checkbox";
-import Container from "@mui/material/Container";
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import Card from "@mui/material/Card";
+import { useEffect, useState } from "react"
+import { redirect, useRouter } from "next/navigation"
+import Button from "@mui/material/Button"
+import TextField from "@mui/material/TextField"
+import FormControlLabel from "@mui/material/FormControlLabel"
+import Checkbox from "@mui/material/Checkbox"
+import Container from "@mui/material/Container"
+import Box from "@mui/material/Box"
+import Typography from "@mui/material/Typography"
+import Card from "@mui/material/Card"
 import { useSearchParams } from "next/navigation"
+import TopBar from "@/components/TopBar"
 
 export default function LoginPage() {
+  const router = useRouter();
+
   const [error, setError] = useState("");
   const [createdMsg, setCreatedMsg] = useState("");
 
@@ -32,7 +36,7 @@ export default function LoginPage() {
     let email = data.get("email");
     let pass = data.get("pass");
 
-    runDBCallAsync(`/api/login?email=${email}&pass=${pass}`
+    runDBCallAsync(`/api/user/login?email=${email}&pass=${pass}`
     );
   };
 
@@ -42,9 +46,7 @@ export default function LoginPage() {
       const data = await res.json();
       console.log(data.data);
       if (data.data === "valid") {
-        alert("LOGIN SUCCESS")
-        console.log("attempting redirect...");
-        window.location.href = "/dashboard";
+        router.push("/dashboard");
       } else {
         setError("Invalid username or password.");
       }
@@ -55,15 +57,26 @@ export default function LoginPage() {
 
   return (
     <Container
-      sx={{
-        height: "100vh",
-        width: "100vh", 
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        padding: 2,
-      }}
+    sx={{
+      height: "100vh",
+      width: "100vh", 
+      justifyContent: "center",
+      alignItems: "center",
+      padding: 2,
+    }}
     >
+    <TopBar left={
+          <div>
+            <button
+                className="topbar-back-btn"
+                onClick={() => router.push('/')}
+              >
+              ← Home
+            </button>
+          </div>
+        } Title={<span>Login</span>} />
+
+
       <Card
         sx={{
           width: "100%",
@@ -111,6 +124,7 @@ export default function LoginPage() {
             name="pass"
             label="Password"
             type="password"
+            autoComplete="off"
             id="pass"
             sx={{ backgroundColor: "white", borderRadius: 1 }}
           />

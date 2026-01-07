@@ -1,9 +1,11 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { useRouter } from "next/navigation"
 import AccountCircleIcon from '@mui/icons-material/AccountCircle'
 
 export default function ProfileMenu() {
+  const router = useRouter()
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
 
@@ -17,6 +19,18 @@ export default function ProfileMenu() {
     document.addEventListener('mousedown', handler)
     return () => document.removeEventListener('mousedown', handler)
   }, [])
+
+  async function handleLogout() {
+    try {
+      await fetch("/api/user/logout", {
+        method: "POST",
+      })
+    } finally {
+      router.push("/")
+      router.refresh() // important: clears server cache
+    }
+  }
+
 
   return (
     <div className="profile-menu" ref={ref}>
@@ -32,7 +46,8 @@ export default function ProfileMenu() {
           <button>Profile</button>
           <button>Settings</button>
           <div className="divider" />
-          <button className="danger">Log out</button>
+          <button className="danger"
+          onClick={handleLogout}>Log out</button>
         </div>
       )}
     </div>

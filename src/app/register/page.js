@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import InputAdornment from '@mui/material/InputAdornment';
@@ -8,8 +9,11 @@ import Container from "@mui/material/Container";
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import Card from "@mui/material/Card";
+import TopBar from "@/components/TopBar";
 
 export default function RegisterPage() {
+  const router = useRouter();
+
   const [msg, setMsg] = useState("");
   const [firstName, setFirst] = useState("");
   const [lastName, setLast] = useState("");
@@ -31,7 +35,7 @@ export default function RegisterPage() {
     }
 
     runRegisterAsync(
-      `/api/register?first=${firstName}&last=${lastName}&email=${email}&pass=${pass}`
+      `/api/user/register?first=${firstName}&last=${lastName}&email=${email}&pass=${pass}`
     );
   };
 
@@ -55,12 +59,23 @@ export default function RegisterPage() {
     <Container
       sx={{
         height: "100vh",
-        display: "flex",
         justifyContent: "center",
         alignItems: "center",
         padding: 2,
       }}
     >
+
+    <TopBar left={
+          <div>
+            <button
+                className="topbar-back-btn"
+                onClick={() => router.push('/')}
+              >
+              ← Home
+            </button>
+          </div>
+        } Title={<span>Login</span>} />
+
       <Card
         sx={{
           width: "100%",

@@ -32,7 +32,7 @@ export async function GET(req) {
     const hashedPassword = await bcrypt.hash(pass, 10);
 
     // Create user
-    await collection.insertOne({ name:fullName ,email, pass:hashedPassword, type:"customer" });
+    await collection.insertOne({ name:fullName ,email, pass:hashedPassword, type:"user" });
 
     return Response.json({ data: "created" });
 
