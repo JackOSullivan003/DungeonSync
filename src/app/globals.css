@@ -218,9 +218,13 @@ body {
 }
 
 .empty-state {
-  padding: 40px;
+  padding: 40px 20px;
   text-align: center;
   opacity: 0.85;
+}
+
+.empty-state p {
+  margin-bottom: 20px;
 }
 
 .campaign-menu {

@@ -1,6 +1,6 @@
 'use client'
 
-export default function TopBar({ left, title, right }) {
+export default function TopBar({ left, Title, right }) {
 
   return (
     <header className="topbar">
@@ -9,7 +9,7 @@ export default function TopBar({ left, title, right }) {
       </div>
 
       <div className="topbar-title">
-        {title}
+        {Title}
       </div>
 
       <div className="topbar-right">

@@ -12,10 +12,9 @@ import CloseIcon from "@mui/icons-material/Close"
 export default function DashboardClient({ user }) {
   const router = useRouter()
 
-  // AUTH SAFE USER DATA
-  const userId = user.id // IMPORTANT: this is now a string, not ObjectId
+  const userId = user.id // this is now a string
 
-  // STATE
+  // states
   const [campaigns, setCampaigns] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -112,6 +111,27 @@ export default function DashboardClient({ user }) {
       <TopBar Title={<span>Dashboard</span>} right={<ProfileMenu />} />
 
       <div className="dashboard-content">
+
+        {loading ? (
+          <p>Loading campaigns…</p>
+        ) : campaigns.length === 0 ? (
+            <div className="empty-state">
+              <h3>No campaigns yet</h3>
+              <p>
+                You’re not part of any campaigns right now.
+                <br />
+                Create one or join using an invite link.
+              </p>
+
+              <button
+                className="primary-btn"
+                onClick={() => setShowCreateModal(true)}
+              >
+                + Create Your First Campaign
+              </button>
+            </div>
+          ) : (
+          <div className="campaign-grid">
         <div className="dashboard-header">
           <button
             className="primary-btn"
@@ -120,13 +140,8 @@ export default function DashboardClient({ user }) {
             + New Campaign
           </button>
         </div>
-
-        {loading ? (
-          <p>Loading campaigns…</p>
-        ) : (
-          <div className="campaign-grid">
             {campaigns.map((c) => {
-              const isDM = c.dmId === userId
+              const isDM = c.dmId?.toString() === userId
 
               return (
                 <div
