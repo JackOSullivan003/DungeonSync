@@ -14,6 +14,13 @@ export default function FileSidebar({ campaignId, files, setFiles, onSelect, cur
     if (!campaignId) return
     const res = await fetch(`/api/campaign/${campaignId}/files`)
     const data = await res.json()
+
+    if (!Array.isArray(data)) {
+      console.error("Expected files array, got:", data)
+      setFiles([]) // fail-safe
+      return
+    }
+
     setFiles(data)
   }
 
@@ -56,8 +63,6 @@ export default function FileSidebar({ campaignId, files, setFiles, onSelect, cur
   }
 
   
-
-
   async function onDeleteFile(id) {
     if (!confirm('Delete this item?')) return
     await fetch(`/api/files/${id}`, { method: 'DELETE' })
@@ -77,6 +82,7 @@ export default function FileSidebar({ campaignId, files, setFiles, onSelect, cur
     )
   }
 
+  const hasFiles = files.length > 0
   const tree = buildTree(files)
 
   return (
@@ -91,29 +97,35 @@ export default function FileSidebar({ campaignId, files, setFiles, onSelect, cur
       </div>
 
       <hr />
-
-      <div className="file-hierarchy-container">
-        {tree.map((node) =>
-          node.nodeType === 'folder' ? (
-            <FolderNode
-              key={node._id}
-              node={node}
-              onCreateFile={onCreateFile}
-              onCreateFolder={onCreateFolder}
-              onRename={onRenameFile}
-              onDelete={onDeleteFile}
-              onSelect={onSelect}
-              currentFileId={currentFileId}
-            />
-          ) : (
-            <FileNode
-              key={node._id}
-              node={node}
-              onSelect={onSelect}
-              currentFileId={currentFileId}
-              onRenameFile={onRenameFile}
-              onDeleteFile={onDeleteFile}
-            />
+     <div className="file-hierarchy-container">
+        {!hasFiles ? (
+          <div className="empty-files">
+            <p>No files yet</p>
+            <small>Create a file or folder to get started.</small>
+          </div>
+        ) : (
+          tree.map((node) =>
+            node.nodeType === 'folder' ? (
+              <FolderNode
+                key={node._id}
+                node={node}
+                onCreateFile={onCreateFile}
+                onCreateFolder={onCreateFolder}
+                onRename={onRenameFile}
+                onDelete={onDeleteFile}
+                onSelect={onSelect}
+                currentFileId={currentFileId}
+              />
+            ) : (
+              <FileNode
+                key={node._id}
+                node={node}
+                onSelect={onSelect}
+                currentFileId={currentFileId}
+                onRenameFile={onRenameFile}
+                onDeleteFile={onDeleteFile}
+              />
+            )
           )
         )}
       </div>

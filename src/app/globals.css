@@ -323,6 +323,14 @@ body {
   cursor: pointer;
 }
 
+.empty-files {
+  opacity: 0.6;
+  padding: 12px;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+
 /* Shared filesidebar node styles */
 .file-sidebar-node {
   display: flex;
