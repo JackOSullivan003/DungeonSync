@@ -82,7 +82,7 @@ export default function CampaignPage({ params }) {
             </button>
           </div>
         }
-        title={
+        Title={
           editingTitle ? (
             <input
               className="campaign-title-input"
