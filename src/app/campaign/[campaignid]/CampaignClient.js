@@ -1,17 +1,18 @@
 'use client'
 
-import { useEffect, useState, useRef, use } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState, useRef} from 'react'
+import { useRouter, useParams } from 'next/navigation'
 import MarkdownEditor from '@/components/MarkdownEditor'
 import FileSidebar from '@/components/FileSidebar'
 import TopBar from '@/components/TopBar'
 import ProfileMenu from '@/components/ProfileMenu'
 
-export default function CampaignPage({ params }) {
+export default function CampaignPage() {
 
-  console.log(use(params))
-  const campaignId = use(params).campaignid
-  //console.log("campaignPage campaignId: ", campaignId)
+  //console.log(use(params))
+  const params = useParams()
+  const campaignid = params.campaignid
+  console.log("campaignPage campaignId: ", campaignid)
 
   const router = useRouter()
 
@@ -28,20 +29,20 @@ export default function CampaignPage({ params }) {
   // Load campaign
   useEffect(() => {
     async function loadCampaign() {
-      const res = await fetch(`/api/campaign/${campaignId}`)
+      const res = await fetch(`/api/campaign/${campaignid}`)
       const campaign = await res.json()
       console.log(campaign)
       setCampaignTitle(campaign.title)
     }
 
     loadCampaign()
-  }, [campaignId])
+  }, [campaignid])
 
   // Save campaign title
   async function saveCampaignTitle() {
     setEditingTitle(false)
 
-    await fetch(`/api/campaign/${campaignId}`, {
+    await fetch(`/api/campaign/${campaignid}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title: campaignTitle })
@@ -110,7 +111,7 @@ export default function CampaignPage({ params }) {
       <div className="layout-container">
         {/* Sidebar */}
         <FileSidebar
-          campaignId={campaignId}
+          campaignId={campaignid}
           files={files}
           setFiles={setFiles}
           currentfileId={currentFileId}
@@ -120,7 +121,7 @@ export default function CampaignPage({ params }) {
         {/* Editor */}
         {currentFileId && (
           <MarkdownEditor
-            campaignId={campaignId}
+            campaignId={campaignid}
             currentFileId={currentFileId}
             fileFromSidebar={activeFile}
             onTitleChange={handleTitleChange}

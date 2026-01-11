@@ -17,6 +17,7 @@ import {
   MDXEditorProps
 } from '@mdxeditor/editor'
 
+
 interface MarkdownEditorProps extends MDXEditorProps {
   campaignId: string
   currentFileId: string | null
@@ -62,8 +63,11 @@ export default function MarkdownEditor({
     async (changes: Partial<File>) => {
       if (!file) return
 
-      // Merge current file with changes to avoid losing content/title
-      const payload = { ...file, ...changes, lastKnownUpdatedAt: file.updatedAt }
+      // Only send fields that are allowed to change
+      const payload = {
+        ...changes,
+        lastKnownUpdatedAt: file.updatedAt,
+      }
 
       try {
         const res = await fetch(`/api/files/${file._id}`, {
@@ -73,6 +77,7 @@ export default function MarkdownEditor({
         })
 
         if (!res.ok) throw new Error('Failed to save file')
+
         const updated: File = await res.json()
         setFile(updated)
         onDirtyChange(false)
