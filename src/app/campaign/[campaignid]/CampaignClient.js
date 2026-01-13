@@ -10,8 +10,9 @@ import ProfileMenu from '@/components/ProfileMenu'
 export default function CampaignPage() {
 
   //console.log(use(params))
-  const campaignid = useParams().campaignid
-  //console.log("campaignPage campaignId: ", campaignid)
+  const params = useParams()
+  const campaignid = params.campaignid
+  console.log("campaignPage campaignId: ", campaignid)
 
   const router = useRouter()
 
