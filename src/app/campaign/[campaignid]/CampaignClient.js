@@ -11,7 +11,7 @@ export default function CampaignPage({ params }) {
 
   //console.log(use(params))
   const campaignid = use(params).campaignid
-  console.log("campaignPage campaignId: ", campaignId)
+  console.log("campaignPage campaignId: ", campaignid)
 
   const router = useRouter()
 
