@@ -10,12 +10,12 @@ export default function Home() {
   return (
     <div>
     
-    <TopBar title = {"DungeonSync"}/>
-
-    <div>
+    <TopBar Title = {"DungeonSync"} right = 
+    {<div>
       <button onClick={() => router.push("/register")}>Register</button>
       <button onClick={() => router.push("/login")}>Login</button>
-    </div>
+    </div>}/>
+
     </div>
   )
 }

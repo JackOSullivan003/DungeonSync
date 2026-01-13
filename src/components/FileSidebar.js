@@ -11,7 +11,7 @@ export default function FileSidebar({ campaignId, files, setFiles, onSelect, cur
   
   async function loadData() {
     console.log('FileSidebar campaignId:', campaignId)
-    if (!campaignId) return
+    if (!campaignId) return console.error('campaignId undefined')
     const res = await fetch(`/api/campaign/${campaignId}/files`)
     const data = await res.json()
 

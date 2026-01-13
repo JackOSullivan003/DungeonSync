@@ -1,0 +1,18 @@
+/* MDXEditor dark theme */
+.mdxeditor-content {
+  color: #ffffff !important;
+  background-color: #1e1e1e;
+  caret-color: #ffffff;
+  padding-inline: 1rem;
+}
+
+ .mdxeditor blockquote { 
+   border-left: 3px solid #444; 
+   padding-left: 1rem; 
+   color: #cc11ee; 
+ } 
+
+.mdxeditor a {
+  color: #31a2ff;
+  text-decoration-line: underline;
+}

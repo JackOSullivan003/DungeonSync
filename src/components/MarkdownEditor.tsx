@@ -17,6 +17,7 @@ import {
   MDXEditorProps
 } from '@mdxeditor/editor'
 
+
 interface MarkdownEditorProps extends MDXEditorProps {
   campaignId: string
   currentFileId: string | null
