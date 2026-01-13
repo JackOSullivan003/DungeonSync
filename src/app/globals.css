@@ -1,6 +1,6 @@
 @import '../../node_modules/@mdxeditor/editor/dist/style.css';
 @import '../css/MarkdownEditerStyle.css';
-@import '../css/TopbarStyle.css';
+@import '../css/TopBarStyle.css';
 
 :root {
   --foreground: #171717;
