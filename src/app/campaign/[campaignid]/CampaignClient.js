@@ -1,17 +1,17 @@
 'use client'
 
-import { useEffect, useState, useRef, use } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState, useRef} from 'react'
+import { useRouter, useParams } from 'next/navigation'
 import MarkdownEditor from '@/components/MarkdownEditor'
 import FileSidebar from '@/components/FileSidebar'
 import TopBar from '@/components/TopBar'
 import ProfileMenu from '@/components/ProfileMenu'
 
-export default function CampaignPage({ params }) {
+export default function CampaignPage() {
 
   //console.log(use(params))
-  const campaignid = use(params).campaignid
-  console.log("campaignPage campaignId: ", campaignid)
+  const campaignid = useParams().campaignid
+  //console.log("campaignPage campaignId: ", campaignid)
 
   const router = useRouter()
 
