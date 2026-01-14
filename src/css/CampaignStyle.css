@@ -1,0 +1,33 @@
+/* Whole 3-column layout */
+.layout-container {
+  display: grid;
+  grid-template-columns: 320px 1fr 250px; /* Left | Middle | Right */
+  flex: 1;
+  min-height: 0;
+}
+
+/* Right sidebar (chat) */
+.chatsidebar {
+  border-left: 1px solid #ccc;
+  background: #888888;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+
+/*user campaign title input*/
+.campaign-title-text {
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.campaign-title-input {
+  font-size: 18px;
+  font-weight: 600;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid #555;
+  color: white;
+  outline: none;
+}

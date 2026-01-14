@@ -1,50 +1,46 @@
 "use client";
 
-import { useEffect, useState } from "react"
-import { redirect, useRouter } from "next/navigation"
-import Button from "@mui/material/Button"
-import TextField from "@mui/material/TextField"
-import FormControlLabel from "@mui/material/FormControlLabel"
-import Checkbox from "@mui/material/Checkbox"
-import Container from "@mui/material/Container"
-import Box from "@mui/material/Box"
-import Typography from "@mui/material/Typography"
-import Card from "@mui/material/Card"
-import { useSearchParams } from "next/navigation"
-import TopBar from "@/components/TopBar"
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import {
+  Button,
+  TextField,
+  FormControlLabel,
+  Checkbox,
+  Box,
+  Typography,
+  Card
+} from "@mui/material";
+import TopBar from "@/components/TopBar";
 
 export default function LoginPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
 
   const [error, setError] = useState("");
   const [createdMsg, setCreatedMsg] = useState("");
 
-  const searchParams = useSearchParams();
-
   useEffect(() => {
     if (searchParams.get("created") === "true") {
-      setCreatedMsg("Account created! please login to your new account.")
+      setCreatedMsg("Account created! Please login to your new account.");
     }
-  })
+  }, [searchParams]);
 
   const handleSubmit = (event) => {
     event.preventDefault();
     setError("");
 
     const data = new FormData(event.currentTarget);
+    const email = data.get("email");
+    const pass = data.get("pass");
 
-    let email = data.get("email");
-    let pass = data.get("pass");
-
-    runDBCallAsync(`/api/user/login?email=${email}&pass=${pass}`
-    );
+    runDBCallAsync(`/api/user/login?email=${email}&pass=${pass}`);
   };
 
   async function runDBCallAsync(url) {
     try {
-      const res = await fetch(url, { method: "GET" });
+      const res = await fetch(url);
       const data = await res.json();
-      console.log(data.data);
       if (data.data === "valid") {
         router.push("/dashboard");
       } else {
@@ -56,112 +52,83 @@ export default function LoginPage() {
   }
 
   return (
-    <Container
-    sx={{
-      height: "100vh",
-      width: "100vh", 
-      justifyContent: "center",
-      alignItems: "center",
-      padding: 2,
-    }}
-    >
-    <TopBar left={
-          <div>
-            <button
-                className="topbar-back-btn"
-                onClick={() => router.push('/')}
-              >
-              ← Home
-            </button>
-          </div>
-        } Title={<span>Login</span>} />
+    <div className="auth-page">
+      <TopBar
+        left={
+          <button
+            className="primary"
+            onClick={() => router.push("/")}
+          >
+            ← Home
+          </button>
+        }
+        Title={<span>Login</span>}
+      />
 
+      <Box className="auth-content">
+        <Card className="auth-card">
+          <Typography variant="h4" align="center" className="auth-title">
+            Welcome Back
+          </Typography>
 
-      <Card
-        sx={{
-          width: "100%",
-          borderRadius: 4,
-          padding: 3,
-          backgroundColor: "#FFF8E1", // McDonald's cream color
-          boxShadow: "0px 4px 15px rgba(0,0,0,0.25)",
-        }}
-      >
-        <Typography
-          variant="h4" align="center" sx={{ fontWeight: 800, marginBottom: 1 }}
-        >
-          Welcome Back
-        </Typography>
-        
-        <Typography
-          align="center" sx={{ marginBottom: 3 }}
-        >
-          login in to continue
-        </Typography>
+          <Typography align="center" className="auth-subtitle">
+            Log in to continue
+          </Typography>
 
-        <Box component="form" onSubmit={handleSubmit} noValidate>
-          {createdMsg && (
-            <p style={{ color: "green", fontWeight: "bold", marginBottom: "10px" }}>
-            {createdMsg}
-            </p>
+          <Box component="form" onSubmit={handleSubmit} noValidate>
+            {createdMsg && (
+              <p className="success-msg">{createdMsg}</p>
             )}
 
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            id="email"
-            label="Email Address"
-            name="email"
-            autoComplete="email"
-            autoFocus
-            sx={{ backgroundColor: "white", borderRadius: 1 }}
-          />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              id="email"
+              label="Email Address"
+              name="email"
+              autoComplete="email"
+              autoFocus
+              className="auth-input"
+            />
 
-          <TextField
-            margin="normal"
-            required
-            fullWidth
-            name="pass"
-            label="Password"
-            type="password"
-            autoComplete="off"
-            id="pass"
-            sx={{ backgroundColor: "white", borderRadius: 1 }}
-          />
+            <TextField
+              margin="normal"
+              required
+              fullWidth
+              name="pass"
+              label="Password"
+              type="password"
+              autoComplete="off"
+              id="pass"
+              className="auth-input"
+            />
 
-          {error && (
-            <p style={{ color: "#DA291C", fontWeight: "bold" }}>{error}</p>
-          )}
+            {error && <p className="error-msg">{error}</p>}
 
-          <FormControlLabel
-            control={<Checkbox sx={{ color: "#DA291C" }} />}
-            label="Remember me"
-          />
+            <FormControlLabel
+              control={<Checkbox sx={{ color: "#DA291C" }} />}
+              label="Remember me"
+            />
 
-          <Button
-            type="submit"
-            fullWidth
-            variant="contained"
-            sx={{
-              mt: 3,
-              backgroundColor: "blue", // McDonald's yellow
-              color: "#27251F",
-              fontWeight: 700,
-              paddingY: 1.2,
-              ":hover": { backgroundColor: "#09719bff" },
-            }}
-          >
-            Sign In
-          </Button>
+            <Button
+              type="submit"
+              fullWidth
+              variant="contained"
+              className="auth-btn"
+            >
+              Sign In
+            </Button>
 
-          <Typography sx={{ mt: 2, textAlign: "center" }}>
-            Don't have an account?{" "}
-            <a href="/register" style={{ color: "#007bacff", fontWeight: "bold" }}>
-              Register
-            </a>
-          </Typography>
-        </Box>
-      </Card>
-    </Container>
+            <Typography sx={{ mt: 2, textAlign: "center" }}>
+              Don't have an account?{" "}
+              <a href="/register" className="auth-link">
+                Register
+              </a>
+            </Typography>
+          </Box>
+        </Card>
+      </Box>
+    </div>
   );
 }

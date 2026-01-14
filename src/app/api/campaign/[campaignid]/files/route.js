@@ -43,13 +43,14 @@ export async function GET(req, { params }) {
 }
 
 
-export async function POST(req, { params }) {
+export async function POST(req, context) {
   const user = await getCurrentUser()
   if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const { campaignid } = await params
+  const params = await context.params
+  const { campaignid } = params
 
   console.log("Post campaignid:", campaignid)
   const body = await req.json()

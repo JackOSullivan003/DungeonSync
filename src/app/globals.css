@@ -1,6 +1,10 @@
 @import '../../node_modules/@mdxeditor/editor/dist/style.css';
 @import '../css/MarkdownEditerStyle.css';
 @import '../css/TopBarStyle.css';
+@import '../css/FileSidebarStyle.css';
+@import '../css/DashboardStyle.css';
+@import '../css/CampaignStyle.css';
+@import '../css/auth.css';
 
 :root {
   --foreground: #171717;
@@ -8,14 +12,15 @@
 
 html,
 body {
-  background: #2e2e2e;
+  background: #121212;
   color: #ffffff;
   max-width: 100vw;
   overflow-x: hidden;
   margin: 0;
   padding: 0;
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
+  height: auto;
+  overflow-y: auto;
   font-family: sans-serif;
 }
 
@@ -31,124 +36,17 @@ body {
   height: 100vh;
 }
 
-.dashboard-page {
-  padding: 24px;
+.brand-title{
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: #4ea1ff;
+  text-shadow: -1px 2px 2px #377ac7;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
 }
 
-.dashboard-content {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.dashboard-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  margin-top: 10px;
-}
-
-.primary-btn {
-  background: #4ea1ff;
-  color: white;
-  border: none;
-  padding: 10px 14px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.primary-btn:hover {
-  background: #3b8ce0;
-}
-
-.campaign-grid {
-  display: grid;
-  grid-template-columns: repeat(1);
-  gap: 16px;
-}
-
-.campaign-card {
-  height: 180px;
-  background-size: cover;
-  background-position: center;
-  border-radius: 10px;
-  cursor: pointer;
-  overflow: hidden;
-  position: relative;
-}
-
-.campaign-card-overlay {
-  height: 100%;
-  padding: 12px;
-  background: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 0.85),
-    rgba(0, 0, 0, 0.25)
-  );
-  color: white;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.campaign-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.campaign-card-description {
-  font-size: 3.2rem;
-}
-
-.campaign-card-footer {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.8rem;
-  opacity: 0.85;
-}
-
-.icon-btn {
+.app-title-btn {
   background: none;
-  border: none;
-  color: white;
-  cursor: pointer;
-}
-
-.empty-state {
-  padding: 40px 20px;
-  text-align: center;
-  opacity: 0.85;
-}
-
-.empty-state p {
-  margin-bottom: 20px;
-}
-
-.campaign-menu {
-  position: absolute;
-  right: 0;
-  top: 28px;
-  background: #222;
-  border: 1px solid #333;
-  border-radius: 6px;
-  padding: 6px;
-  z-index: 10;
-}
-
-.campaign-menu button {
-  display: block;
-  width: 100%;
-  background: none;
-  border: none;
-  color: white;
-  padding: 6px 10px;
-  text-align: left;
-  cursor: pointer;
-}
-
-.campaign-menu .danger {
-  color: #ff6b6b;
 }
 
 .modal-backdrop {
@@ -189,130 +87,4 @@ body {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-}
-
-
-/* Whole 3-column layout */
-.layout-container {
-  display: grid;
-  grid-template-columns: 320px 1fr 250px; /* Left | Middle | Right */
-  flex: 1;
-  min-height: 0;
-}
-
-/* Left filesidebar */
-.file-sidebar {
-  border-right: 2px solid #000000;
-  background: #111111;
-  overflow-y: auto;
-  padding-inline: 1.6rem;
-  padding-top: 1rem;
-}
-
-.file-sidebar button {
-  text-align: center;
-  border-style: none;
-  margin-right: 3px;
-  background-color: #111111;
-  width: 12x;
-  margin-inline: 2
-  px;
-  color: white;
-  cursor: pointer;
-}
-
-.empty-files {
-  opacity: 0.6;
-  padding: 12px;
-  text-align: center;
-  font-size: 0.9rem;
-}
-
-
-/* Shared filesidebar node styles */
-.file-sidebar-node {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 6px 8px;
-  border-radius: 4px;
-  cursor: pointer;
-  position: relative;
-  transition: background-color 0.12s ease;
-}
-
-/* Hover highlight */
-.file-sidebar-node:hover {
-  background-color: rgba(255, 255, 255, 0.08);
-}
-
-/* Active (selected file) */
-.file-sidebar-node.active {
-  background-color: rgba(255, 255, 255, 0.16);
-  font-weight: 600;
-}
-
-/* Label (icon + text) */
-.file-sidebar-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-}
-
-/* Dot menu (folders + files) */
-.file-sidebar-dots-btn {
-  opacity: 0;
-  background: transparent;
-  border: none;
-  color: #aaa;
-  cursor: pointer;
-  padding: 2px;
-}
-
-/* Show dots on hover OR active */
-.file-sidebar-row:hover .file-sidebar-dots-btn,
-.file-sidebar-row.active .file-sidebar-dots-btn {
-  opacity: 1;
-}
-
-/* Popup menu */
-.file-sidebar-menu-popup {
-  position: absolute;
-  right: 0;
-  top: 100%;
-  background: #1a1a1a;
-  border: 1px solid #333;
-  border-radius: 4px;
-  padding: 4px;
-  z-index: 20;
-  min-width: 140px;
-}
-
-/* Menu buttons */
-.file-sidebar-menu-popup button {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  width: 100%;
-  background: none;
-  border: none;
-  color: white;
-  padding: 4px 6px;
-  cursor: pointer;
-  text-align: left;
-}
-
-.file-sidebar-menu-popup button:hover {
-  background: #2a2a2a;
-}
-
-
-
-/* Right sidebar (chat) */
-.chatsidebar {
-  border-left: 1px solid #ccc;
-  background: #888888;
-  overflow-y: auto;
-  padding: 1rem;
 }

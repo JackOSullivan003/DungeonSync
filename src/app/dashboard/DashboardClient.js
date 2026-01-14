@@ -1,50 +1,43 @@
-"use client"
+'use client'
 
-import { useEffect, useState } from "react"
-import { useRouter } from "next/navigation"
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 
-import TopBar from "@/components/TopBar"
-import ProfileMenu from "@/components/ProfileMenu"
+import TopBar from '@/components/TopBar'
+import ProfileMenu from '@/components/ProfileMenu'
+import CampaignCard from '@/components/CampaignCard'
 
-import MoreVertIcon from "@mui/icons-material/MoreVert"
-import CloseIcon from "@mui/icons-material/Close"
+import CloseIcon from '@mui/icons-material/Close'
 
 export default function DashboardClient({ user }) {
   const router = useRouter()
+  const userId = user.id
 
-  const userId = user.id // this is now a string
-
-  // states
   const [campaigns, setCampaigns] = useState([])
   const [loading, setLoading] = useState(true)
 
-  const [menuOpenId, setMenuOpenId] = useState(null)
   const [activeCampaign, setActiveCampaign] = useState(null)
-
   const [showCreateModal, setShowCreateModal] = useState(false)
-  const [newCampaign, setNewCampaign] = useState({
-    title: "",
-    description: "",
-    backgroundImage: "",
-  })
-  
-  const [newUsername, setNewUsername] = useState("")
-  const [error, setError] = useState("")
 
+  const [newCampaign, setNewCampaign] = useState({
+    title: '',
+    description: '',
+    backgroundImage: '',
+  })
+
+  const [newUsername, setNewUsername] = useState('')
+  const [error, setError] = useState('')
   const [showUsernameModal, setShowUsernameModal] = useState(false)
-  
-  
+
   useEffect(() => {
-    if (user && (!user.username || user.username.trim() === "")) {
+    if (user && (!user.username || user.username.trim() === '')) {
       setShowUsernameModal(true)
     }
   }, [user])
 
-
-  // LOAD CAMPAIGNS
   async function loadCampaigns() {
     setLoading(true)
-    const res = await fetch("/api/campaign")
+    const res = await fetch('/api/campaign')
     const data = await res.json()
     setCampaigns(data)
     setLoading(false)
@@ -54,206 +47,118 @@ export default function DashboardClient({ user }) {
     loadCampaigns()
   }, [])
 
-  // CREATE CAMPAIGN
   async function createCampaign() {
-    if (!newCampaign.title.trim()) return alert("Title required")
+    if (!newCampaign.title.trim()) return alert('Title required')
 
-    try {
-      const res = await fetch("/api/campaign", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(newCampaign),
-      })
+    const res = await fetch('/api/campaign', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newCampaign),
+    })
 
-      if (!res.ok) throw new Error("Create failed")
+    if (!res.ok) return alert('Create failed')
 
-      const created = await res.json()
-      setCampaigns((prev) => [created, ...prev])
-
-      setShowCreateModal(false)
-      setNewCampaign({ title: "", description: "", backgroundImage: "" })
-    } catch (err) {
-      console.error(err)
-      alert("Could not create campaign")
-    }
+    const created = await res.json()
+    setCampaigns(prev => [created, ...prev])
+    setShowCreateModal(false)
+    setNewCampaign({ title: '', description: '', backgroundImage: '' })
   }
 
-  // SAVE EDITS
   async function saveCampaignChanges() {
-    try {
-      const res = await fetch(`/api/campaign/${activeCampaign._id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: activeCampaign.title,
-          description: activeCampaign.description,
-        }),
-      })
+    const res = await fetch(`/api/campaign/${activeCampaign._id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: activeCampaign.title,
+        description: activeCampaign.description,
+      }),
+    })
 
-      if (!res.ok) throw new Error("Save failed")
+    if (!res.ok) return alert('Save failed')
 
-      setCampaigns((prev) =>
-        prev.map((c) =>
-          c._id === activeCampaign._id ? activeCampaign : c
-        )
-      )
-
-      setActiveCampaign(null)
-    } catch (err) {
-      console.error(err)
-      alert("Could not save changes")
-    }
+    setCampaigns(prev =>
+      prev.map(c => (c._id === activeCampaign._id ? activeCampaign : c))
+    )
+    setActiveCampaign(null)
   }
 
-  // RENDER
   return (
     <div className="dashboard-page">
-      <TopBar Title={<span>Dashboard</span>} right={<ProfileMenu />} />
+      <TopBar left= {<button className='app-title-btn' onClick={() => router.push(`/`)}><h1 className="brand-title">DungeonSync</h1></button>}Title={<span>Dashboard</span>} right={<ProfileMenu user={user}/>} />
 
       <div className="dashboard-content">
-
         {loading ? (
           <p>Loading campaigns…</p>
         ) : campaigns.length === 0 ? (
-            <div className="empty-state">
-              <h3>No campaigns yet</h3>
-              <p>
-                You’re not part of any campaigns right now.
-                <br />
-                Create one or join using an invite link.
-              </p>
+          <div className="empty-state">
+            <h3>No campaigns yet</h3>
+            <p>
+              You’re not part of any campaigns yet.
+              <br />
+              Create one or join via an invite link.
+            </p>
 
+            <button
+              className="primary-btn"
+              onClick={() => setShowCreateModal(true)}
+            >
+              + Create Your First Campaign
+            </button>
+          </div>
+        ) : (
+          <>
+            <div className="dashboard-header">
               <button
                 className="primary-btn"
                 onClick={() => setShowCreateModal(true)}
               >
-                + Create Your First Campaign
+                + New Campaign
               </button>
             </div>
-          ) : (
-          <div className="campaign-grid">
-        <div className="dashboard-header">
-          <button
-            className="primary-btn"
-            onClick={() => setShowCreateModal(true)}
-          >
-            + New Campaign
-          </button>
-        </div>
-            {campaigns.map((c) => {
-              const isDM = c.dmId?.toString() === userId
 
-              return (
-                <div
-                  key={c._id}
-                  className="campaign-card"
-                  style={{
-                    backgroundImage: c.backgroundImage
-                      ? `url(${c.backgroundImage})`
-                      : undefined,
-                  }}
-                  onClick={() => router.push(`/campaign/${c._id}`)}
-                >
-                  <div className="campaign-card-overlay">
-                    <div className="campaign-card-header">
-                      <h3>{c.title}</h3>
+            <div className="campaign-grid">
+              {campaigns.map(c => {
+                const isDM = c.dmId?.toString() === userId
 
-                      <button
-                        className="icon-btn"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setMenuOpenId(menuOpenId === c._id ? null : c._id)
-                        }}
-                      >
-                        <MoreVertIcon />
-                      </button>
-
-                      {menuOpenId === c._id && (
-                        <div className="campaign-menu">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              setActiveCampaign(c)
-                              setMenuOpenId(null)
-                            }}
-                          >
-                            Settings
-                          </button>
-
-                          {isDM ? (
-                            <button
-                              className="danger"
-                              onClick={async (e) => {
-                                e.stopPropagation()
-                                if (!confirm("Delete this campaign?")) return
-
-                                const res = await fetch(
-                                  `/api/campaign/${c._id}`,
-                                  {
-                                    method: "PATCH",
-                                    headers: {
-                                      "Content-Type": "application/json",
-                                    },
-                                    body: JSON.stringify({ action: "delete" }),
-                                  }
-                                )
-
-                                if (res.ok) {
-                                  setCampaigns((prev) =>
-                                    prev.filter((x) => x._id !== c._id)
-                                  )
-                                } else {
-                                  alert("Delete failed")
-                                }
-                              }}
-                            >
-                              Delete Campaign
-                            </button>
-                          ) : (
-                            <button
-                              className="danger"
-                              onClick={async (e) => {
-                                e.stopPropagation()
-                                if (
-                                  !confirm(
-                                    "Are you sure you want to leave this campaign?"
-                                  )
-                                )
-                                  return
-
-                                const res = await fetch(
-                                  `/api/campaign/${c._id}`,
-                                  {
-                                    method: "PATCH",
-                                    headers: {
-                                      "Content-Type": "application/json",
-                                    },
-                                    body: JSON.stringify({ action: "leave" }),
-                                  }
-                                )
-
-                                if (res.ok) {
-                                  setCampaigns((prev) =>
-                                    prev.filter((x) => x._id !== c._id)
-                                  )
-                                } else {
-                                  alert("Leave failed")
-                                }
-                              }}
-                            >
-                              Leave Campaign
-                            </button>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    <p>{c.description || "No description"}</p>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
+                return (
+                  <CampaignCard
+                    key={c._id}
+                    campaign={c}
+                    isDM={isDM}
+                    userId={userId}
+                    onOpen={() => router.push(`/campaign/${c._id}`)}
+                    onEdit={() => setActiveCampaign(c)}
+                    onDelete={async () => {
+                      if (!confirm('Delete this campaign?')) return
+                      const res = await fetch(`/api/campaign/${c._id}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'delete' }),
+                      })
+                      if (res.ok) {
+                        setCampaigns(prev =>
+                          prev.filter(x => x._id !== c._id)
+                        )
+                      }
+                    }}
+                    onLeave={async () => {
+                      if (!confirm('Leave this campaign?')) return
+                      const res = await fetch(`/api/campaign/${c._id}`, {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'leave' }),
+                      })
+                      if (res.ok) {
+                        setCampaigns(prev =>
+                          prev.filter(x => x._id !== c._id)
+                        )
+                      }
+                    }}
+                  />
+                )
+              })}
+            </div>
+          </>
         )}
       </div>
 
@@ -272,11 +177,8 @@ export default function DashboardClient({ user }) {
               Title *
               <input
                 value={newCampaign.title}
-                onChange={(e) =>
-                  setNewCampaign({
-                    ...newCampaign,
-                    title: e.target.value,
-                  })
+                onChange={e =>
+                  setNewCampaign({ ...newCampaign, title: e.target.value })
                 }
               />
             </label>
@@ -285,7 +187,7 @@ export default function DashboardClient({ user }) {
               Description
               <textarea
                 value={newCampaign.description}
-                onChange={(e) =>
+                onChange={e =>
                   setNewCampaign({
                     ...newCampaign,
                     description: e.target.value,
@@ -298,7 +200,7 @@ export default function DashboardClient({ user }) {
               Background Image URL
               <input
                 value={newCampaign.backgroundImage}
-                onChange={(e) =>
+                onChange={e =>
                   setNewCampaign({
                     ...newCampaign,
                     backgroundImage: e.target.value,
@@ -308,9 +210,7 @@ export default function DashboardClient({ user }) {
             </label>
 
             <div className="modal-actions">
-              <button onClick={() => setShowCreateModal(false)}>
-                Cancel
-              </button>
+              <button onClick={() => setShowCreateModal(false)}>Cancel</button>
               <button className="primary-btn" onClick={createCampaign}>
                 Create Campaign
               </button>
@@ -319,12 +219,12 @@ export default function DashboardClient({ user }) {
         </div>
       )}
 
-      {/* SETTINGS MODAL */}
+      {/* EDIT MODAL */}
       {activeCampaign && (
         <div className="modal-backdrop">
           <div className="modal">
             <div className="modal-header">
-              <h3>Campaign Settings</h3>
+              <h3>Edit Campaign</h3>
               <button onClick={() => setActiveCampaign(null)}>
                 <CloseIcon />
               </button>
@@ -334,7 +234,7 @@ export default function DashboardClient({ user }) {
               Title
               <input
                 value={activeCampaign.title}
-                onChange={(e) =>
+                onChange={e =>
                   setActiveCampaign({
                     ...activeCampaign,
                     title: e.target.value,
@@ -346,8 +246,8 @@ export default function DashboardClient({ user }) {
             <label>
               Description
               <textarea
-                value={activeCampaign.description || ""}
-                onChange={(e) =>
+                value={activeCampaign.description || ''}
+                onChange={e =>
                   setActiveCampaign({
                     ...activeCampaign,
                     description: e.target.value,
@@ -357,9 +257,7 @@ export default function DashboardClient({ user }) {
             </label>
 
             <div className="modal-actions">
-              <button onClick={() => setActiveCampaign(null)}>
-                Cancel
-              </button>
+              <button onClick={() => setActiveCampaign(null)}>Cancel</button>
               <button className="primary-btn" onClick={saveCampaignChanges}>
                 Save
               </button>
@@ -368,7 +266,7 @@ export default function DashboardClient({ user }) {
         </div>
       )}
 
-      {/* SET USERNAME MODEL*/}
+      {/* USERNAME MODAL */}
       {showUsernameModal && (
         <div className="modal-backdrop">
           <div className="modal">
@@ -377,7 +275,7 @@ export default function DashboardClient({ user }) {
 
             <input
               value={newUsername}
-              onChange={(e) => setNewUsername(e.target.value)}
+              onChange={e => setNewUsername(e.target.value)}
               placeholder="Username"
             />
 
@@ -386,17 +284,17 @@ export default function DashboardClient({ user }) {
             <button
               className="primary-btn"
               onClick={async () => {
-                const res = await fetch("/api/user/profile", {
-                  method: "PATCH",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ username: newUsername })
+                const res = await fetch('/api/user/profile', {
+                  method: 'PATCH',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ username: newUsername }),
                 })
-              
+
                 if (!res.ok) {
-                  setError("Username already taken")
+                  setError('Username already taken')
                   return
                 }
-              
+
                 window.location.reload()
               }}
             >
@@ -405,10 +303,6 @@ export default function DashboardClient({ user }) {
           </div>
         </div>
       )}
-
-
-
-
     </div>
   )
 }

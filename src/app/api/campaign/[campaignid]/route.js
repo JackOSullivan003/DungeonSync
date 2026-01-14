@@ -35,7 +35,6 @@ export async function GET(req, context) {
 
     const userId = new ObjectId(user._id)
 
-    // Access control
     const isDM = campaign.dmId?.equals(userId)
     const isPlayer = campaign.players?.some(p => p.equals(userId))
 
@@ -90,7 +89,6 @@ export async function PATCH(req, context) {
     const userId = new ObjectId(user._id)
     const isDM = campaign.dmId?.equals(userId)
     const isPlayer = campaign.players?.some(p => p.equals(userId))
-
 
     // DELETE CAMPAIGN (DM ONLY)
     if (body.action === 'delete') {
@@ -158,7 +156,15 @@ export async function PATCH(req, context) {
       { returnDocument: 'after' }
     )
 
-    return NextResponse.json(result.value)
+    const updatedCampaign =
+      {
+        ...campaign,
+        _id: campaign._id.toString(),
+        dmId: campaign.dmId?.toString(),
+        players: campaign.players?.map(p => p.toString()) ?? [],
+      }
+
+    return NextResponse.json(updatedCampaign)
   } catch (err) {
     console.error('PATCH campaign error:', err)
     return NextResponse.json(

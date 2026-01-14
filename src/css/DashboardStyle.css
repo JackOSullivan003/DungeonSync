@@ -1,0 +1,119 @@
+.dashboard-page {
+  padding: 24px;
+}
+
+.dashboard-content {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  margin-top: 10px;
+}
+
+.primary-btn {
+  background: #4ea1ff;
+  color: white;
+  border: none;
+  padding: 10px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.primary-btn:hover {
+  background: #3b8ce0;
+}
+
+.campaign-grid {
+  display: grid;
+  grid-template-columns: repeat(1);
+  gap: 16px;
+}
+
+.campaign-card {
+  height: 180px;
+  background-size: cover;
+  background-position: center;
+  border-radius: 10px;
+  cursor: pointer;
+  overflow: hidden;
+  position: relative;
+}
+
+.campaign-card-overlay {
+  height: 100%;
+  padding: 12px;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.85),
+    rgba(0, 0, 0, 0.25)
+  );
+  color: white;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.campaign-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.campaign-card-description {
+  font-size: 3.2rem;
+}
+
+.campaign-card-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+}
+
+.empty-state {
+  padding: 40px 20px;
+  text-align: center;
+  opacity: 0.85;
+}
+
+.empty-state p {
+  margin-bottom: 20px;
+}
+
+.campaign-menu {
+  position: absolute;
+  right: 0;
+  top: 28px;
+  background: #222;
+  border: 1px solid #333;
+  border-radius: 6px;
+  padding: 6px;
+  z-index: 10;
+}
+
+.campaign-menu button {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  color: white;
+  padding: 6px 10px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.campaign-menu .danger {
+  color: #ff6b6b;
+}

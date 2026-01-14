@@ -7,6 +7,8 @@ import MoreVertIcon from '@mui/icons-material/MoreVert'
 import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder'
 import NewFileIcon from '@mui/icons-material/NoteAdd'
 
+//css for this component is in FileSidebarStyle as the FileSidebar is the only place where this component is used
+
 export default function FolderNode({
   node,
   onCreateFile,
