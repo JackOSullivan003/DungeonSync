@@ -82,7 +82,7 @@ export default function RegisterPage() {
             To use DungeonSync, register with an email
           </Typography>
 
-          <Box component="auth-form" onSubmit={handleSubmit} noValidate>
+          <Box component="form" onSubmit={handleSubmit} noValidate>
             <TextField
               margin="normal"
               required
