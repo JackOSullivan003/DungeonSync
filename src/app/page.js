@@ -1,21 +1,20 @@
-"use client";
+import { getCurrentUser } from "@/lib/auth"
+import HomeClient from "./HomeClient"
 
-import TopBar from '@/components/TopBar';
-import { useRouter } from "next/navigation";
+export default async function HomePage() {
+  const user = await getCurrentUser()
 
+  if (!user) {
+    return <HomeClient user={null} />
+  }
 
-export default function Home() {
-  const router = useRouter();
-  
-  return (
-    <div>
-    
-    <TopBar Title = {"DungeonSync"} right = 
-    {<div>
-      <button onClick={() => router.push("/register")}>Register</button>
-      <button onClick={() => router.push("/login")}>Login</button>
-    </div>}/>
+  const safeUser = {
+    id: user._id.toString(),
+    name: user.name,
+    email: user.email,
+    username: user.username,
+    type: user.type,
+  }
 
-    </div>
-  )
+  return <HomeClient user={safeUser} />
 }

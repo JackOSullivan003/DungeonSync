@@ -35,6 +35,32 @@ interface File {
   updatedAt: number
 }
 
+function normalizeMarkdownLinks(markdown: string): string {
+  return markdown.replace(
+    /\]\(([^)]+)\)/g,
+    (match, url) => {
+      // Already absolute or special
+      if (
+        url.startsWith('http://') ||
+        url.startsWith('https://') ||
+        url.startsWith('/') ||
+        url.startsWith('#')
+      ) {
+        return match
+      }
+
+      // Looks like a domain → force https
+      if (/^[\w-]+\.[\w.-]+/.test(url)) {
+        return `](https://${url})`
+      }
+
+      // Otherwise treat as internal route
+      return `](/${url})`
+    }
+  )
+}
+
+
 export default function MarkdownEditor({
   campaignId,
   currentFileId,
@@ -66,8 +92,12 @@ export default function MarkdownEditor({
       // Only send fields that are allowed to change
       const payload = {
         ...changes,
+        ...(changes.content
+          ? { content: normalizeMarkdownLinks(changes.content) }
+          : {}),
         lastKnownUpdatedAt: file.updatedAt,
       }
+
 
       try {
         const res = await fetch(`/api/files/${file._id}`, {
@@ -157,15 +187,24 @@ export default function MarkdownEditor({
       <MDXEditor
         key={file._id} // ensures editor refreshes on new file
         markdown={file.content || ''}
-        onChange={(md) => debounceSave({ content: md })}
-        contentEditableClassName="mdxeditor-content"
-        plugins={[
-          headingsPlugin(),
-          listsPlugin(),
-          quotePlugin(),
-          toolbarPlugin({
-            toolbarContents: () => (
-              <>
+        onChange={(md) => {
+          const normalized = normalizeMarkdownLinks(md)
+          
+          // Update local state immediately
+          setFile((prev) =>
+            prev ? { ...prev, content: normalized } : prev
+        )
+        
+        debounceSave({ content: normalized })
+      }}
+      contentEditableClassName="mdxeditor-content"
+      plugins={[
+        headingsPlugin(),
+        listsPlugin(),
+        quotePlugin(),
+        toolbarPlugin({
+          toolbarContents: () => (
+            <>
                 <UndoRedo />
                 <BoldItalicUnderlineToggles />
               </>
@@ -176,6 +215,7 @@ export default function MarkdownEditor({
           linkDialogPlugin(),
           markdownShortcutPlugin(),
         ]}
+        trim={false}
         {...props}
         ref={editorRef}
       />

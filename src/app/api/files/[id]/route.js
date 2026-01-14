@@ -68,9 +68,10 @@ export async function PATCH(req, context) {
 }
 
 
-export async function DELETE(req, { params }) {
+export async function DELETE(req, context) {
   try {
-    const { id } = await params
+    const params = await context.params
+    const { id } = params
     const collection = await getCollection('Files')
 
     async function deleteRecursive(nodeId) {

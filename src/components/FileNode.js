@@ -4,6 +4,8 @@ import { useRef, useState, useEffect } from 'react'
 import FileIcon from '@mui/icons-material/Description'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 
+//css for this component is in FileSidebarStyle as the FileSidebar is the only place where this component is used
+
 export default function FileNode({
   node,
   onSelect,

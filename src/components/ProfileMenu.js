@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter } from "next/navigation"
 import AccountCircleIcon from '@mui/icons-material/AccountCircle'
 
-export default function ProfileMenu() {
+export default function ProfileMenu( { user }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
@@ -34,15 +34,18 @@ export default function ProfileMenu() {
 
   return (
     <div className="profile-menu" ref={ref}>
+      
       <button
         className="profile-btn"
         onClick={() => setOpen(!open)}
-      >
+        >
         <AccountCircleIcon fontSize="large" />
       </button>
 
       {open && (
         <div className="profile-dropdown">
+          <p>Hello, {user.username}</p>
+          <div className="divider" />          
           <button>Profile</button>
           <button>Settings</button>
           <div className="divider" />
