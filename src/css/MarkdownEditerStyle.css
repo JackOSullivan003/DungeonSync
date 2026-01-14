@@ -4,6 +4,7 @@
   background-color: #1e1e1e;
   caret-color: #ffffff;
   padding-inline: 1rem;
+  white-space: nowrap;
 }
 
  .mdxeditor blockquote { 

@@ -1,0 +1,105 @@
+.file-sidebar {
+  border-right: 2px solid #000000;
+  background: #111111;
+  overflow-y: auto;
+  padding-inline: 1.6rem;
+  padding-top: 1rem;
+}
+
+.file-sidebar button {
+  text-align: center;
+  border-style: none;
+  margin-right: 3px;
+  background-color: #111111;
+  width: 12x;
+  margin-inline: 2
+  px;
+  color: white;
+  cursor: pointer;
+}
+
+.empty-files {
+  opacity: 0.6;
+  padding: 12px;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+
+/* Shared filesidebar node styles */
+.file-sidebar-node {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  position: relative;
+  transition: background-color 0.12s ease;
+}
+
+/* Hover highlight */
+.file-sidebar-node:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Active (selected file) */
+.file-sidebar-node.active {
+  background-color: rgba(255, 255, 255, 0.16);
+  font-weight: 600;
+}
+
+/* Label (icon + text) */
+.file-sidebar-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+/* Dot menu (folders + files) */
+.file-sidebar-dots-btn {
+  opacity: 0;
+  background: transparent;
+  border: none;
+  color: #aaa;
+  cursor: pointer;
+  padding: 2px;
+}
+
+/* Show dots on hover OR active */
+.file-sidebar-row:hover .file-sidebar-dots-btn,
+.file-sidebar-row.active .file-sidebar-dots-btn {
+  opacity: 1;
+}
+
+/* Popup menu */
+.file-sidebar-menu-popup {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  background: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 4px;
+  padding: 4px;
+  z-index: 20;
+  min-width: 140px;
+}
+
+/* Menu buttons */
+.file-sidebar-menu-popup button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  background: none;
+  border: none;
+  color: white;
+  padding: 4px 6px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.file-sidebar-menu-popup button:hover {
+  background: #2a2a2a;
+}

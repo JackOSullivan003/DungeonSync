@@ -7,12 +7,12 @@ import FileSidebar from '@/components/FileSidebar'
 import TopBar from '@/components/TopBar'
 import ProfileMenu from '@/components/ProfileMenu'
 
-export default function CampaignPage() {
+export default function CampaignPage({ user }) {
 
   //console.log(use(params))
   const params = useParams()
   const campaignid = params.campaignid
-  console.log("campaignPage campaignId: ", campaignid)
+  //console.log("campaignPage campaignId: ", campaignid)
 
   const router = useRouter()
 
@@ -76,7 +76,7 @@ export default function CampaignPage() {
         left={
           <div>
             <button
-                className="topbar-back-btn"
+                className="primary"
                 onClick={() => router.push('/dashboard')}
               >
               ← Dashboard
@@ -104,7 +104,7 @@ export default function CampaignPage() {
           )
         }
         right={
-            <ProfileMenu />
+            <ProfileMenu user={user}/>
         }
       />
 
