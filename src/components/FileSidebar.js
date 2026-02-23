@@ -1,18 +1,18 @@
-'use client'
+'use client' // marks this as a client-side React component
 
 import { useEffect } from 'react'
-import FolderNode from './FolderNode'
-import FileNode from './FileNode'
-import buildTree from '@/lib/Buildtreecomp'
-import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder'
-import CreateNewFileIcon from '@mui/icons-material/NoteAdd'
+import FolderNode from './FolderNode' // component to render folders
+import FileNode from './FileNode' // component to render files
+import buildTree from '@/lib/Buildtreecomp' // helper to create tree structure for file & folder nodes
+import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder' // folder icon
+import CreateNewFileIcon from '@mui/icons-material/NoteAdd' // file icon
 
 export default function FileSidebar({ campaignId, files, setFiles, onSelect, currentFileId }) {
   
   async function loadData() {
-    console.log('FileSidebar campaignId:', campaignId)
-    if (!campaignId) return console.error('campaignId undefined')
-    const res = await fetch(`/api/campaign/${campaignId}/files`)
+    console.log('FileSidebar campaignId:', campaignId) // debug log
+    if (!campaignId) return console.error('campaignId undefined') // stop if campaignId missing
+    const res = await fetch(`/api/campaign/${campaignId}/files`) // fetch files for this campaign
     const data = await res.json()
 
     if (!Array.isArray(data)) {
@@ -21,11 +21,11 @@ export default function FileSidebar({ campaignId, files, setFiles, onSelect, cur
       return
     }
 
-    setFiles(data)
+    setFiles(data) // store files in parent state
   }
 
   useEffect(() => {
-    loadData()
+    loadData() // load files when campaignId changes
   }, [campaignId])
 
   async function onCreateFile(parentId = null) {
@@ -41,8 +41,8 @@ export default function FileSidebar({ campaignId, files, setFiles, onSelect, cur
       })
     })
     const created = await res.json()
-    setFiles((prev) => [...prev, created])   // append new file to parent state
-    onSelect(created._id.toString())
+    setFiles((prev) => [...prev, created])   // add new file to state
+    onSelect(created._id.toString()) // open new file
   }
 
   async function onCreateFolder(parentId = null) {
@@ -59,15 +59,15 @@ export default function FileSidebar({ campaignId, files, setFiles, onSelect, cur
     })
 
     const created = await res.json()
-    setFiles((prev) => [...prev, created])
+    setFiles((prev) => [...prev, created]) // add folder to state
   }
 
   
   async function onDeleteFile(id) {
-    if (!confirm('Delete this item?')) return
-    await fetch(`/api/files/${id}`, { method: 'DELETE' })
-    setFiles((prev) => prev.filter((f) => f._id !== id)) // remove from parent state
-    if (currentFileId === id) onSelect(null)
+    if (!confirm('Delete this item?')) return // ask user before deleting
+    await fetch(`/api/files/${id}`, { method: 'DELETE' }) // delete from server
+    setFiles((prev) => prev.filter((f) => f._id !== id)) // remove from state
+    if (currentFileId === id) onSelect(null) // clear selection if deleted file was open
   }
 
   async function onRenameFile(id, title) {
@@ -82,17 +82,17 @@ export default function FileSidebar({ campaignId, files, setFiles, onSelect, cur
     )
   }
 
-  const hasFiles = files.length > 0
-  const tree = buildTree(files)
+  const hasFiles = files.length > 0 // check if any files exist
+  const tree = buildTree(files) // convert flat list into folder tree
 
   return (
     <div className="file-sidebar">
       <div className="file-sidebar-top-btns">
         <button onClick={() => onCreateFile(null)}>
-          <CreateNewFileIcon />
+          <CreateNewFileIcon /> {/* button to create file */}
         </button>
         <button onClick={() => onCreateFolder(null)}>
-          <CreateNewFolderIcon />
+          <CreateNewFolderIcon /> {/* button to create folder */}
         </button>
       </div>
 
