@@ -2,6 +2,7 @@ import { getCollection } from '@/lib/mongodb' // MongoDB Helper File
 import { getCurrentUser } from '@/lib/auth' // auth Helper File
 import { ObjectId } from 'mongodb' // MongoDB ObjectId type
 import { NextResponse } from 'next/server' // Next.js helper to send API responses
+import { CreateFileSchema } from '@/lib/validation/FileSchemas' // Zod validation schema
 
 
 // GET is used to fetch and return all files for a campaign the user has access to
@@ -13,19 +14,19 @@ export async function GET(req, { params }) {
 
   const { campaignid } = await params // get campaign id from the route
 
-  console.log( "Get campaginid: ", campaignid) // log for debugging
-
   if (!ObjectId.isValid(campaignid)) {
     return NextResponse.json({ error: "Invalid campaign" }, { status: 400 }) // reject bad id format
   }
 
+  const campaignObjectId = new ObjectId(campaignid)
+  const userObjectId = new ObjectId(user._id)
   const campaigns = await getCollection("Campaigns") // access Campaigns collection
 
   const campaign = await campaigns.findOne({
-    _id: new ObjectId(campaignid),
+    _id: campaignObjectId,
     $or: [
-      { dmId: new ObjectId(user._id) }, // allow if user is the DM
-      { players: new ObjectId(user._id) } // allow if user is a player
+      { dmId: userObjectId }, // allow if user is the DM
+      { players: userObjectId } // allow if user is a player
     ]
   })
 
@@ -36,11 +37,10 @@ export async function GET(req, { params }) {
   const files = await getCollection("Files") // access Files collection
 
   const result = await files
-    .find({ campaignId: new ObjectId(campaignid) }) // find files linked to this campaign
+    .find({ campaignId: campaignObjectId }) // find files linked to this campaign
     .sort({ updatedAt: 1 }) // sort by last updated time
     .toArray()
 
-  console.log(result) // log files for debugging
   return NextResponse.json(result ?? []) // return files or empty array
 }
 
@@ -52,24 +52,42 @@ export async function POST(req, context) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 }) // block if not logged in
   }
 
-  const params = await context.params
-  const { campaignid } = params // get campaign id from route
-
-  console.log("Post campaignid:", campaignid)
-  const body = await req.json() // read request body
-  const { title, parentId, nodeType } = body // get file info from body
+  const { campaignid } = await context.params // get campaign id from route
 
   if (!ObjectId.isValid(campaignid)) {
     return NextResponse.json({ error: "Invalid campaign" }, { status: 400 }) // reject bad id
   }
 
+  // read body from request
+  const body = await req.json()
+
+  // normalize parentId (undefined, null, or empty string -> null)
+  if (!body.parentId) body.parentId = null
+
+  // validate file using FileSchema
+  const parsed = CreateFileSchema.safeParse(body)
+
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: "Invalid request", details: parsed.error.flatten() },
+      { status: 400 }
+    )
+  }
+
+  // destructure validated data
+  const { title, parentId, nodeType, fileType } = parsed.data
+
+  const campaignObjectId = new ObjectId(campaignid)
+  const userObjectId = new ObjectId(user._id)
+
   const campaigns = await getCollection("Campaigns") // access Campaigns collection
 
+  // verify user has access to campaign
   const campaign = await campaigns.findOne({
-    _id: new ObjectId(campaignid),
+    _id: campaignObjectId,
     $or: [
-      { dmId: new ObjectId(user._id) }, // allow if DM
-      { players: new ObjectId(user._id) } // allow if player
+      { dmId: userObjectId }, // allow if DM
+      { players: userObjectId } // allow if player
     ]
   })
 
@@ -77,20 +95,47 @@ export async function POST(req, context) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 }) // block if not in campaign
   }
 
-  const files = await getCollection("Files") // access Files collection
+  const files = await getCollection("Files")
 
+  // verify parent belongs to campaign (if provided)
+  let parentObjectId = null
+  if (parentId) {
+    parentObjectId = new ObjectId(parentId)
+
+    const parentFile = await files.findOne({
+      _id: parentObjectId,
+      campaignId: campaignObjectId
+    })
+
+    if (!parentFile) {
+      return NextResponse.json(
+        { error: "Parent file not found in this campaign" },
+        { status: 400 }
+      )
+    }
+
+    // folders can only contain children if parent is folder
+    if (parentFile.nodeType !== "folder") {
+      return NextResponse.json(
+        { error: "Parent must be a folder" },
+        { status: 400 }
+      )
+    }
+  }
+
+  // construct new file document
   const doc = {
-    campaignId: new ObjectId(campaignid), // link file to campaign
+    campaignId: campaignObjectId,  // link file to campaign
     title: title || "Untitled", // default title if none given
-    parentId: parentId ? new ObjectId(parentId) : null, // optional parent folder
-    nodeType,
+    parentId: parentObjectId, // optional parent folder
+    nodeType: nodeType || "file", // sidebar rendering
     fileType: "markdown", // default file type
     content: "", // start with empty content
     updatedAt: new Date(), // track last update time
     version: 1,
   }
 
-  const result = await files.insertOne(doc) // save new file to database
+  const result = await files.insertOne(doc)
 
-  return NextResponse.json({ _id: result.insertedId, ...doc }) // return created file info
+  return NextResponse.json({ _id: result.insertedId, ...doc })
 }
