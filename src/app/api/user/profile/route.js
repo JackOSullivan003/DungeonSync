@@ -1,42 +1,48 @@
-import { getCollection } from '@/lib/mongodb' // MongoDB Helper File
-import { getCurrentUser } from '@/lib/auth' // auth Helper File
+import { getCollection } from '@/lib/mongodb'
+import { getCurrentUser } from '@/lib/auth'
 
-// PATCH is used to update the logged-in user's profile info
+export async function GET(req) {
+  const user = await getCurrentUser()
+  if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 })
+
+  return Response.json({
+    _id: user._id.toString(),
+    name: user.name,
+    username: user.username,
+    email: user.email,
+    bio: user.bio ?? '',
+    avatarUrl: user.avatarUrl ?? null,
+    joinedAt: user._id.getTimestamp(), // MongoDB ObjectId contains creation timestamp
+  })
+}
+
 export async function PATCH(req) {
-  const user = await getCurrentUser() // check who is making the request
-  if (!user) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 }) // block if not logged in
-  }
+  const user = await getCurrentUser()
+  if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { username, avatarUrl } = await req.json() // read profile fields from request body
+  const { username, bio, name } = await req.json()
 
-  const users = await getCollection("Users") // access Users collection
+  const users = await getCollection('Users')
 
-  // username uniqueness check
   if (username) {
     const existing = await users.findOne({
       username,
-      _id: { $ne: user._id } // make sure another user doesn't already have this username
+      _id: { $ne: user._id }
     })
-
-    if (existing) {
-      return Response.json(
-        { error: "Username already taken" },
-        { status: 400 }
-      ) // stop if username is already used
-    }
+    if (existing) return Response.json({ error: 'Username already taken' }, { status: 400 })
   }
 
   await users.updateOne(
-    { _id: user._id }, // update this user's record
+    { _id: user._id },
     {
       $set: {
-        ...(username && { username }), // update username if provided
-        ...(avatarUrl && { avatarUrl }), // update avatar if provided
+        ...(username && { username }),
+        ...(name && { name }),
+        ...(bio !== undefined && { bio }),
         updatedAt: new Date()
       }
     }
   )
 
-  return Response.json({ ok: true }) // confirm update success
+  return Response.json({ ok: true })
 }

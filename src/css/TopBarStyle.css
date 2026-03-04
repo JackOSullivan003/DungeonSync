@@ -1,15 +1,15 @@
 /* Top bar container */
 .topbar {
   height: 60px;
-  background: linear-gradient(90deg, #0f0f0f, #1a1a1a);
-  border-bottom: 2px solid #222;
+  background: linear-gradient(90deg, #1e1e1e, #252525);
+  border-bottom: 2px solid #3a3a3a;
   display: flex;
   align-items: center;
   padding: 0 2rem;
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
 }
 
 /* Left / Right zones */
@@ -21,7 +21,6 @@
   min-width: 0;
 }
 
-/* Left sticks left, right sticks right */
 .topbar-left {
   margin-right: auto;
 }
@@ -37,7 +36,7 @@
   transform: translateX(-50%);
   font-size: 1.35rem;
   font-weight: 700;
-  color: #4ea1ff;
+  color: #c0392b;
   letter-spacing: 0.4px;
   white-space: nowrap;
 }
@@ -51,38 +50,34 @@
   border: none;
 }
 
-/* Ghost buttons (login etc) */
 .topbar button.ghost {
   background: transparent;
   color: #eaeaea;
-  border: 1px solid #333;
-  
+  border: 1px solid #444;
 }
 
 .topbar button.ghost:hover {
   background: #1a1a1a;
 }
 
-/* Primary buttons */
 .topbar button.primary {
-  background: #4ea1ff;
-  color: black;
+  background: #c0392b;
+  color: white;
 }
 
 .topbar button.primary:hover {
-  background: #76b7ff;
+  background: #e74c3c;
 }
 
 .topbar-actions {
   display: flex;
 }
 
-
 /* Profile button */
 .profile-btn {
   background: none;
   border: none;
-  color: rgb(197, 197, 197);
+  color: #aaa;
   cursor: pointer;
   padding: 4px;
 }
@@ -100,8 +95,8 @@
   position: absolute;
   right: 0;
   top: calc(100% + 8px);
-  background: #1a1a1a;
-  border: 1px solid #333;
+  background: #2a2a2a;
+  border: 1px solid #3a3a3a;
   border-radius: 8px;
   min-width: 180px;
   padding: 6px;
@@ -120,19 +115,19 @@
 }
 
 .profile-dropdown button:hover {
-  background: #2a2a2a;
+  background: #333;
 }
 
 .profile-dropdown .divider {
   height: 1px;
-  background: #333;
+  background: #3a3a3a;
   margin: 6px 0;
 }
 
 .profile-dropdown .danger {
-  color: #ff6b6b;
+  color: #e74c3c;
 }
 
 .profile-dropdown .danger:hover {
-  background: rgba(255, 107, 107, 0.15);
+  background: rgba(231, 76, 60, 0.15);
 }

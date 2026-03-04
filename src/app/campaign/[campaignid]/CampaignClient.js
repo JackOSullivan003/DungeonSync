@@ -16,6 +16,8 @@ export default function CampaignPage({ user }) {
 
   const router = useRouter()
 
+  const [campaign, setCampaign] = useState(null)
+
   const [campaignTitle, setCampaignTitle] = useState('Loading…')
   const [editingTitle, setEditingTitle] = useState(false)
 
@@ -23,6 +25,7 @@ export default function CampaignPage({ user }) {
   const [currentFileId, setCurrentFileId] = useState(null)
   const [isDirty, setIsDirty] = useState(false)
   const activeFile = files.find(f => f._id === currentFileId)
+  const isDM = campaign?.dmId?.toString() === user?.id
 
   const flushRef = useRef(null)
 
@@ -32,6 +35,7 @@ export default function CampaignPage({ user }) {
       const res = await fetch(`/api/campaign/${campaignid}`)
       const campaign = await res.json()
       console.log(campaign)
+      setCampaign(campaign)
       setCampaignTitle(campaign.title)
     }
 
@@ -116,6 +120,8 @@ export default function CampaignPage({ user }) {
           setFiles={setFiles}
           currentfileId={currentFileId}
           onSelect={switchFile}
+          isDM={isDM}
+          campaign={campaign}
         />
 
         {/* Editor */}

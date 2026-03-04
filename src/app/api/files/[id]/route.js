@@ -44,7 +44,7 @@ export async function PATCH(req, context) {
     const { _id, version, updatedAt, ...fieldsToUpdate } = updates
 
     // normalize parentId
-    if (fieldsToUpdate.parentId === '' || fieldsToUpdate.parentId === undefined)
+    if ('parentId' in fieldsToUpdate && (fieldsToUpdate.parentId === '' || fieldsToUpdate.parentId === undefined))
       fieldsToUpdate.parentId = null
 
     // validate with schema.partial() so only sent fields are validated
@@ -60,6 +60,22 @@ export async function PATCH(req, context) {
 
     const existing = await collection.findOne({ _id: new ObjectId(id) })
     if (!existing) return NextResponse.json({ error: 'File not found' }, { status: 404 })
+
+    // Handle visibleTo — GM only
+    if ('visibleTo' in fieldsToUpdate) {
+      const campaigns = await getCollection('Campaigns')
+      const campaign = await campaigns.findOne({ _id: existing.campaignId })
+      if (!campaign) return NextResponse.json({ error: 'Campaign not found' }, { status: 404 })
+      
+      const isDM = campaign.dmId.equals(new ObjectId(user._id))
+      if (!isDM) return NextResponse.json({ error: 'Only the DM can change file permissions' }, { status: 403 })
+      
+      // visibleTo must be 'all' or an array of strings
+      const vt = fieldsToUpdate.visibleTo
+      if (vt !== 'all' && !Array.isArray(vt)) {
+        return NextResponse.json({ error: 'Invalid visibleTo value' }, { status: 400 })
+      }
+    }
 
     const updated = await collection.findOneAndUpdate(
       { _id: new ObjectId(id) },

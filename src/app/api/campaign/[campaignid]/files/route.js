@@ -41,7 +41,37 @@ export async function GET(req, { params }) {
     .sort({ updatedAt: 1 }) // sort by last updated time
     .toArray()
 
-  return NextResponse.json(result ?? []) // return files or empty array
+  const isDM = campaign.dmId.equals(userObjectId)
+
+  let filtered;
+  if (isDM) {
+    filtered = result
+  } else {
+    // Build set of hidden folder ids (folders this player cannot see)
+    function isVisible(file, allFiles, userId, checkedIds = new Set()) {
+      // prevent infinite loops
+      if (checkedIds.has(file._id.toString())) return false
+      checkedIds.add(file._id.toString())
+
+      // check this node's own visibleTo
+      const vt = file.visibleTo
+      const selfVisible = !vt || vt === 'all' || (Array.isArray(vt) && vt.includes(userId))
+      if (!selfVisible) return false
+
+      // if it has a parent, parent must also be visible
+      if (file.parentId) {
+        const parent = allFiles.find(f => f._id.toString() === file.parentId.toString())
+        if (parent && !isVisible(parent, allFiles, userId, checkedIds)) return false
+      }
+
+      return true
+    }
+
+    const userId = user._id.toString()
+    filtered = result.filter(f => isVisible(f, result, userId))
+  }
+
+  return NextResponse.json(filtered ?? [])
 }
 
 

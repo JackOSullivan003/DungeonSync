@@ -1,21 +1,30 @@
 .file-sidebar {
-  border-right: 2px solid #000000;
+  border-right: 2px solid #1a1a1a;
   background: #111111;
   overflow-y: auto;
-  padding-inline: 1.6rem;
+  padding-inline: 1rem;
   padding-top: 1rem;
+}
+
+.file-sidebar-top-btns {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
 }
 
 .file-sidebar button {
   text-align: center;
   border-style: none;
-  margin-right: 3px;
-  background-color: #111111;
-  width: 12x;
-  margin-inline: 2
-  px;
-  color: white;
+  background-color: transparent;
+  color: #aaa;
   cursor: pointer;
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+
+.file-sidebar button:hover {
+  color: white;
+  background-color: rgba(255, 255, 255, 0.08);
 }
 
 .empty-files {
@@ -25,6 +34,11 @@
   font-size: 0.9rem;
 }
 
+.file-hierarchy-container {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
 
 /* Shared filesidebar node styles */
 .file-sidebar-node {
@@ -38,14 +52,12 @@
   transition: background-color 0.12s ease;
 }
 
-/* Hover highlight */
 .file-sidebar-node:hover {
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: rgba(255, 255, 255, 0.06);
 }
 
-/* Active (selected file) */
 .file-sidebar-node.active {
-  background-color: rgba(255, 255, 255, 0.16);
+  background-color: rgba(192, 57, 43, 0.2);
   font-weight: 600;
 }
 
@@ -55,9 +67,16 @@
   align-items: center;
   gap: 6px;
   min-width: 0;
+  overflow: hidden;
 }
 
-/* Dot menu (folders + files) */
+.file-sidebar-label span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Dot menu */
 .file-sidebar-dots-btn {
   opacity: 0;
   background: transparent;
@@ -65,9 +84,9 @@
   color: #aaa;
   cursor: pointer;
   padding: 2px;
+  flex-shrink: 0;
 }
 
-/* Show dots on hover OR active */
 .file-sidebar-row:hover .file-sidebar-dots-btn,
 .file-sidebar-row.active .file-sidebar-dots-btn {
   opacity: 1;
@@ -80,13 +99,12 @@
   top: 100%;
   background: #1a1a1a;
   border: 1px solid #333;
-  border-radius: 4px;
+  border-radius: 6px;
   padding: 4px;
   z-index: 20;
-  min-width: 140px;
+  min-width: 150px;
 }
 
-/* Menu buttons */
 .file-sidebar-menu-popup button {
   display: flex;
   align-items: center;
@@ -95,11 +113,75 @@
   background: none;
   border: none;
   color: white;
-  padding: 4px 6px;
+  padding: 6px 8px;
   cursor: pointer;
   text-align: left;
+  border-radius: 4px;
+  font-size: 0.85rem;
 }
 
 .file-sidebar-menu-popup button:hover {
   background: #2a2a2a;
+}
+
+/* Hidden from players indicator */
+.file-hidden-from-players {
+  opacity: 1;
+}
+
+.file-lock-icon {
+  color: #c0392b !important;
+  font-size: 14px !important;
+  flex-shrink: 0;
+}
+
+/* Permissions submenu */
+.file-permissions-popup {
+  min-width: 200px;
+}
+
+.permissions-header {
+  border-bottom: 1px solid #333;
+  padding-bottom: 4px;
+  margin-bottom: 4px;
+}
+
+.permissions-back {
+  font-size: 0.8rem;
+  color: #aaa !important;
+  padding: 4px 6px !important;
+}
+
+.permissions-back:hover {
+  color: white !important;
+}
+
+.permission-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 8px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  border-radius: 4px;
+  color: white;
+}
+
+.permission-row:hover {
+  background: #2a2a2a;
+}
+
+.permission-row input[type='checkbox'] {
+  accent-color: #c0392b;
+  cursor: pointer;
+}
+
+.permission-player-id {
+  color: #ccc;
+}
+
+.permissions-empty {
+  font-size: 0.8rem;
+  color: #666;
+  padding: 6px 8px;
 }

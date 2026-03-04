@@ -16,32 +16,45 @@
 }
 
 .primary-btn {
-  background: #4ea1ff;
+  background: #c0392b;
   color: white;
   border: none;
   padding: 10px 14px;
   border-radius: 6px;
   cursor: pointer;
+  font-weight: 600;
 }
 
 .primary-btn:hover {
-  background: #3b8ce0;
+  background: #e74c3c;
+}
+
+.primary-btn:disabled {
+  background: #555;
+  cursor: not-allowed;
 }
 
 .campaign-grid {
   display: grid;
-  grid-template-columns: repeat(1);
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 16px;
 }
 
 .campaign-card {
   height: 180px;
+  background: #1a1a1a;
   background-size: cover;
   background-position: center;
   border-radius: 10px;
   cursor: pointer;
   overflow: hidden;
   position: relative;
+  border: 1px solid #2a2a2a;
+  transition: border-color 0.15s ease;
+}
+
+.campaign-card:hover {
+  border-color: #c0392b;
 }
 
 .campaign-card-overlay {
@@ -49,8 +62,8 @@
   padding: 12px;
   background: linear-gradient(
     to top,
-    rgba(0, 0, 0, 0.85),
-    rgba(0, 0, 0, 0.25)
+    rgba(0, 0, 0, 0.88),
+    rgba(0, 0, 0, 0.2)
   );
   color: white;
   display: flex;
@@ -64,15 +77,11 @@
   align-items: center;
 }
 
-.campaign-card-description {
-  font-size: 3.2rem;
-}
-
 .campaign-card-footer {
   display: flex;
   justify-content: space-between;
   font-size: 0.8rem;
-  opacity: 0.85;
+  opacity: 0.8;
 }
 
 .icon-btn {
@@ -96,7 +105,7 @@
   position: absolute;
   right: 0;
   top: 28px;
-  background: #222;
+  background: #1e1e1e;
   border: 1px solid #333;
   border-radius: 6px;
   padding: 6px;
@@ -112,8 +121,26 @@
   padding: 6px 10px;
   text-align: left;
   cursor: pointer;
+  border-radius: 4px;
+}
+
+.campaign-menu button:hover {
+  background: #2a2a2a;
 }
 
 .campaign-menu .danger {
-  color: #ff6b6b;
+  color: #e74c3c;
+}
+
+.invite-code-display {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: 0.3rem;
+  text-align: center;
+  padding: 16px;
+  background: #111;
+  border-radius: 8px;
+  border: 1px solid #333;
+  color: #c0392b;
+  margin: 12px 0;
 }

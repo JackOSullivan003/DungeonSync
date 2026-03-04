@@ -5,17 +5,16 @@ import MoreVertIcon from '@mui/icons-material/MoreVert'
 
 export default function CampaignCard({
   campaign,
-  isDM,
-  userId,
+  isGM,
   onOpen,
   onEdit,
   onDelete,
   onLeave,
+  onGetInviteCode,
 }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const menuRef = useRef(null)
 
-  // Close menu when clicking outside
   useEffect(() => {
     function close(e) {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -53,17 +52,31 @@ export default function CampaignCard({
 
             {menuOpen && (
               <div className="campaign-menu">
+                {isGM && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation()
                     setMenuOpen(false)
                     onEdit()
                   }}
-                >
+                  >
                   Edit…
                 </button>
+                )}
+                
+                {isGM && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      setMenuOpen(false)
+                      onGetInviteCode()
+                    }}
+                  >
+                    Invite Players…
+                  </button>
+                )}
 
-                {isDM ? (
+                {isGM ? (
                   <button
                     className="danger"
                     onClick={(e) => {
@@ -94,8 +107,8 @@ export default function CampaignCard({
         <p>{campaign.description || 'No description'}</p>
 
         <div className="campaign-card-footer">
-          <span>{isDM ? 'DM: You' : 'Player'}</span>
-          <span>{(campaign.players?.length || 0) + 1} players</span>
+          <span>{isGM ? 'GM: You' : `GM: ${campaign.gmUsername}`}</span>
+          <span>{(campaign.players?.length || 0)} players</span>
         </div>
       </div>
     </div>
