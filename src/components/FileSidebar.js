@@ -1,14 +1,22 @@
 'use client' // marks this as a client-side React component
 
-import { useEffect } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import FolderNode from './FolderNode' // component to render folders
 import FileNode from './FileNode' // component to render files
 import buildTree from '@/lib/Buildtreecomp' // helper to create tree structure for file & folder nodes
 import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder' // folder icon
 import CreateNewFileIcon from '@mui/icons-material/NoteAdd' // file icon
 
-export default function FileSidebar({ campaignId, files, setFiles, onSelect, currentFileId }) {
+
+export default function FileSidebar({ campaignId, files, setFiles, onSelect, currentFileId, campaign, isDM}) {
   
+  const [playerUsernames, setPlayerUsernames] = useState({}) // { userId: username }
+  const campaignPlayers = useMemo(() => 
+    campaign?.players?.map(p => p.toString()) ?? []
+  , [campaign])
+
+
+
   async function loadData() {
     console.log('FileSidebar campaignId:', campaignId) // debug log
     if (!campaignId) return console.error('campaignId undefined') // stop if campaignId missing
@@ -29,6 +37,7 @@ export default function FileSidebar({ campaignId, files, setFiles, onSelect, cur
   }, [campaignId])
 
   async function onCreateFile(parentId = null) {
+    console.log('onCreateFile parentId:', parentId)
     if (!campaignId) return console.error('campaignId undefined')
     const res = await fetch(`/api/campaign/${campaignId}/files`, {
       method: 'POST',
@@ -82,6 +91,33 @@ export default function FileSidebar({ campaignId, files, setFiles, onSelect, cur
     )
   }
 
+  async function onPermissionChange(fileId, visibleTo) {
+    await fetch(`/api/files/${fileId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ visibleTo })
+    })
+    setFiles(prev =>
+      prev.map(f => f._id === fileId ? { ...f, visibleTo } : f)
+    )
+  }
+
+  useEffect(() => {
+    async function fetchUsernames() {
+      if (!campaignPlayers?.length) return
+      const entries = await Promise.all(
+        campaignPlayers.map(async id => {
+          const res = await fetch(`/api/user/${id}`)
+          const data = await res.json()
+          return [id, data.username ?? id.slice(-6)]
+        })
+      )
+      setPlayerUsernames(Object.fromEntries(entries))
+    }
+    fetchUsernames()
+  }, [campaignPlayers])
+
+
   const hasFiles = files.length > 0 // check if any files exist
   const tree = buildTree(files) // convert flat list into folder tree
 
@@ -115,6 +151,9 @@ export default function FileSidebar({ campaignId, files, setFiles, onSelect, cur
                 onDelete={onDeleteFile}
                 onSelect={onSelect}
                 currentFileId={currentFileId}
+                isDM={isDM}
+                campaignPlayers={playerUsernames}
+                onPermissionChange={onPermissionChange}
               />
             ) : (
               <FileNode
@@ -124,6 +163,9 @@ export default function FileSidebar({ campaignId, files, setFiles, onSelect, cur
                 currentFileId={currentFileId}
                 onRenameFile={onRenameFile}
                 onDeleteFile={onDeleteFile}
+                isDM={isDM}
+                campaignPlayers={playerUsernames}
+                onPermissionChange={onPermissionChange}
               />
             )
           )

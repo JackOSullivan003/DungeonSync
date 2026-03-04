@@ -38,6 +38,10 @@ export const FileBaseSchema = z.object({
   fileType: z
     .enum(["markdown", "pdf", "image"])
     .optional(),
+
+  visibleTo: z
+    .union([z.literal('all'), z.array(z.string())])
+    .optional(),
 })
 
 

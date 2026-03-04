@@ -46,7 +46,7 @@ export default function ProfileMenu( { user }) {
         <div className="profile-dropdown">
           <p>Hello, {user.username}</p>
           <div className="divider" />          
-          <button>Profile</button>
+          <button onClick={() => { setOpen(false); router.push('/profile') }}>Profile</button>
           <button>Settings</button>
           <div className="divider" />
           <button className="danger"

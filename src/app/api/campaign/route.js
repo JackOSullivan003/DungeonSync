@@ -5,25 +5,40 @@ import { NextResponse } from 'next/server' // Next.js helper to send API respons
 
 // GET is used to fetch all campaigns where the user is the DM or a player
 export async function GET() {
-  const user = await getCurrentUser() // check who is making the request
+  const user = await getCurrentUser()
   if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 }) // block if not logged in
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
   }
 
-  const campaignsCollection = await getCollection('Campaigns') // access Campaigns collection
+  const campaignsCollection = await getCollection('Campaigns')
+  const usersCollection = await getCollection('Users')
   const userId = new ObjectId(user._id)
 
   const campaigns = await campaignsCollection
     .find({
       $or: [
-        { dmId: userId }, // campaigns where user is the DM
-        { players: userId } // campaigns where user is a player
+        { dmId: userId },
+        { players: userId }
       ]
     })
-    .sort({ createdAt: -1 }) // newest campaigns first
+    .sort({ createdAt: -1 })
     .toArray()
 
-  return NextResponse.json(campaigns) // return campaign list
+  // Collect unique GM ids and fetch their usernames in one query
+  const gmIds = [...new Set(campaigns.map(c => c.dmId.toString()))]
+  const gmUsers = await usersCollection
+    .find({ _id: { $in: gmIds.map(id => new ObjectId(id)) } })
+    .project({ _id: 1, username: 1 })
+    .toArray()
+
+  const gmUsernameMap = Object.fromEntries(gmUsers.map(u => [u._id.toString(), u.username]))
+
+  const enriched = campaigns.map(c => ({
+    ...c,
+    gmUsername: gmUsernameMap[c.dmId.toString()] ?? 'Unknown'
+  }))
+
+  return NextResponse.json(enriched)
 }
 
 // POST is used to create a new campaign owned by the logged-in user

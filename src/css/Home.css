@@ -67,11 +67,16 @@
 }
 
 .feature-card {
-  background: #141414;
-  border: 1px solid #222;
+  background: #2a2a2a;
+  border: 1px solid #3a3a3a;
   border-radius: 14px;
   padding: 1.8rem;
   text-align: left;
+  transition: border-color 0.15s ease;
+}
+
+.feature-card:hover {
+  border-color: #c0392b;
 }
 
 .feature-card h3 {
@@ -85,7 +90,7 @@
 /* HOW IT WORKS */
 .how-it-works {
   padding: 4rem 6vw;
-  background: #101010;
+  background: #1e1e1e;
   text-align: center;
 }
 
@@ -100,8 +105,8 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: #4ea1ff;
-  color: #000;
+  background: #c0392b;
+  color: white;
   width: 42px;
   height: 42px;
   border-radius: 50%;
@@ -130,8 +135,8 @@
 
 /* BUTTONS */
 .primary-btn {
-  background: #4ea1ff;
-  color: black;
+  background: #c0392b;
+  color: white;
   border: none;
   border-radius: 8px;
   padding: 0.7rem 1.4rem;
@@ -145,18 +150,24 @@
 }
 
 .primary-btn:hover {
-  background: #76b7ff;
+  background: #e74c3c;
+}
+
+.primary-btn:disabled {
+  background: #555;
+  cursor: not-allowed;
 }
 
 .secondary-btn {
   background: transparent;
-  color: #4ea1ff;
-  border: 1px solid #4ea1ff;
+  color: #c0392b;
+  border: 1px solid #c0392b;
   border-radius: 8px;
   padding: 0.7rem 1.4rem;
   cursor: pointer;
+  font-weight: 600;
 }
 
 .secondary-btn:hover {
-  background: rgba(78, 161, 255, 0.15);
+  background: rgba(192, 57, 43, 0.15);
 }

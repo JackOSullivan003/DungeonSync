@@ -19,6 +19,16 @@ export default function DashboardClient({ user }) {
   const [activeCampaign, setActiveCampaign] = useState(null)
   const [showCreateModal, setShowCreateModal] = useState(false)
 
+  const [showJoinModal, setShowJoinModal] = useState(false)
+  const [joinCode, setJoinCode] = useState('')
+  const [joinError, setJoinError] = useState('')
+
+  const [inviteCode, setInviteCode] = useState(null)
+  const [inviteExpiry, setInviteExpiry] = useState(null)
+  const [showInviteModal, setShowInviteModal] = useState(false)
+  const [inviteLoading, setInviteLoading] = useState(false)
+  const [codeCopied, setCodeCopied] = useState(false)
+
   const [newCampaign, setNewCampaign] = useState({
     title: '',
     description: '',
@@ -82,6 +92,38 @@ export default function DashboardClient({ user }) {
     setActiveCampaign(null)
   }
 
+  async function joinCampaign() {
+  setJoinError('')
+  const res = await fetch('/api/campaign/join', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code: joinCode }),
+  })
+
+  const data = await res.json()
+  if (!res.ok) return setJoinError(data.error || 'Failed to join')
+
+  setCampaigns(prev => [...prev, data]) // instantly append to dashboard
+  setShowJoinModal(false)
+  setJoinCode('')
+}
+
+async function getInviteCode(campaignId) {
+  setInviteLoading(true)
+  setInviteCode(null)
+  setShowInviteModal(true)
+
+  const res = await fetch(`/api/campaign/${campaignId}/invite`, { method: 'POST' })
+  const data = await res.json()
+
+  setInviteLoading(false)
+  if (!res.ok) return setInviteCode('Error generating code')
+
+  setInviteCode(data.inviteCode)
+  setInviteExpiry(new Date(data.inviteCodeExpiry).toLocaleTimeString())
+}
+
+
   return (
     <div className="dashboard-page">
       <TopBar left= {<button className='app-title-btn' onClick={() => router.push(`/`)}><h1 className="brand-title">DungeonSync</h1></button>}Title={<span>Dashboard</span>} right={<ProfileMenu user={user}/>} />
@@ -95,7 +137,7 @@ export default function DashboardClient({ user }) {
             <p>
               You’re not part of any campaigns yet.
               <br />
-              Create one or join via an invite link.
+              Create one or join by asking your GM for an invite code.
             </p>
 
             <button
@@ -103,6 +145,12 @@ export default function DashboardClient({ user }) {
               onClick={() => setShowCreateModal(true)}
             >
               + Create Your First Campaign
+            </button>
+            <button 
+              className="primary-btn" 
+              onClick={() => setShowJoinModal(true)}
+            >
+              + Join Campaign
             </button>
           </div>
         ) : (
@@ -114,20 +162,27 @@ export default function DashboardClient({ user }) {
               >
                 + New Campaign
               </button>
+              <button 
+                className="primary-btn" 
+                onClick={() => setShowJoinModal(true)}
+              >
+                + Join Campaign
+              </button>
             </div>
 
             <div className="campaign-grid">
               {campaigns.map(c => {
-                const isDM = c.dmId?.toString() === userId
+                const isGM = c.dmId?.toString() === userId
 
                 return (
                   <CampaignCard
                     key={c._id}
                     campaign={c}
-                    isDM={isDM}
+                    isGM={isGM}
                     userId={userId}
                     onOpen={() => router.push(`/campaign/${c._id}`)}
                     onEdit={() => setActiveCampaign(c)}
+                    onGetInviteCode={() => getInviteCode(c._id)}
                     onDelete={async () => {
                       if (!confirm('Delete this campaign?')) return
                       const res = await fetch(`/api/campaign/${c._id}`, {
@@ -265,6 +320,77 @@ export default function DashboardClient({ user }) {
           </div>
         </div>
       )}
+
+      {/* JOIN MODAL */}
+{showJoinModal && (
+  <div className="modal-backdrop">
+    <div className="modal">
+      <div className="modal-header">
+        <h3>Join Campaign</h3>
+        <button onClick={() => { setShowJoinModal(false); setJoinCode(''); setJoinError('') }}>
+          <CloseIcon />
+        </button>
+      </div>
+
+      <label>
+        Invite Code
+        <input
+          value={joinCode}
+          onChange={e => setJoinCode(e.target.value)}
+          placeholder="e.g. A3F9B2C1"
+          onKeyDown={e => e.key === 'Enter' && joinCampaign()}
+        />
+      </label>
+
+      {joinError && <p className="error">{joinError}</p>}
+
+      <div className="modal-actions">
+        <button onClick={() => { setShowJoinModal(false); setJoinCode(''); setJoinError('') }}>
+          Cancel
+        </button>
+        <button className="primary-btn" onClick={joinCampaign}>
+          Join
+        </button>
+      </div>
+    </div>
+  </div>
+)}
+
+{/* INVITE CODE MODAL */}
+{showInviteModal && (
+  <div className="modal-backdrop">
+    <div className="modal">
+      <div className="modal-header">
+        <h3>Invite Players</h3>
+        <button onClick={() => { setShowInviteModal(false); setCodeCopied(false) }}>
+          <CloseIcon />
+        </button>
+      </div>
+
+      {inviteLoading ? (
+        <p>Generating code…</p>
+      ) : (
+        <>
+          <p>Share this code with your players. It expires at <strong>{inviteExpiry}</strong>.</p>
+          <div className="invite-code-display">{inviteCode}</div>
+          <div className="modal-actions">
+            <button
+              className="primary-btn"
+              onClick={() => {
+                navigator.clipboard.writeText(inviteCode)
+                setCodeCopied(true)
+              }}
+            >
+              {codeCopied ? 'Copied!' : 'Copy Code'}
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  </div>
+)}
+
+
 
       {/* USERNAME MODAL */}
       {showUsernameModal && (

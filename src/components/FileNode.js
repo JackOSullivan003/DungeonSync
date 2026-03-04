@@ -3,55 +3,69 @@
 import { useRef, useState, useEffect } from 'react'
 import FileIcon from '@mui/icons-material/Description'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
-
-//css for this component is in FileSidebarStyle as the FileSidebar is the only place where this component is used
+import LockIcon from '@mui/icons-material/Lock'
 
 export default function FileNode({
   node,
   onSelect,
   currentFileId,
   onRenameFile,
-  onDeleteFile
+  onDeleteFile,
+  isDM,
+  campaignPlayers, // array of player userIds (strings)
+  onPermissionChange, // (fileId, visibleTo) => void
 }) {
   const isActive = node._id === currentFileId
   const [menuOpen, setMenuOpen] = useState(false)
   const [isRenaming, setIsRenaming] = useState(false)
   const [title, setTitle] = useState(node.title)
+  const [showPermissions, setShowPermissions] = useState(false)
 
   const menuRef = useRef(null)
 
-  useEffect(() => {
-    setTitle(node.title)
-  }, [node.title])
-  
-  
+  useEffect(() => { setTitle(node.title) }, [node.title])
+
   const handleRename = async () => {
     setIsRenaming(false)
-    if (title !== node.title) {
-      await onRenameFile(node._id, title)
-    }
+    if (title !== node.title) await onRenameFile(node._id, title)
   }
 
   useEffect(() => {
     if (!menuOpen) return
-
     const handleClickOutside = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
         setMenuOpen(false)
+        setShowPermissions(false)
       }
     }
-
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [menuOpen])
 
+  const visibleTo = node.visibleTo ?? 'all'
+  const isGloballyVisible = visibleTo === 'all'
+
+  function toggleGlobalVisibility() {
+    const next = isGloballyVisible ? [] : 'all'
+    onPermissionChange(node._id, next)
+  }
+
+  function togglePlayer(playerId) {
+    const current = Array.isArray(visibleTo) ? visibleTo : []
+    const next = current.includes(playerId)
+      ? current.filter(id => id !== playerId)
+      : [...current, playerId]
+    onPermissionChange(node._id, next)
+  }
+
   return (
     <div
-      className={`file-sidebar-row file-sidebar-node ${isActive ? 'active' : ''}`}
+      className={`file-sidebar-row file-sidebar-node ${isActive ? 'active' : ''} ${!isGloballyVisible ? 'file-hidden-from-players' : ''}`}
       onClick={() => onSelect(node._id)}
     >
       <div className="file-sidebar-label">
         <FileIcon fontSize="small" />
+        {!isGloballyVisible && <LockIcon fontSize="small" className="file-lock-icon" />}
 
         {isRenaming ? (
           <input
@@ -74,33 +88,80 @@ export default function FileNode({
           onClick={(e) => {
             e.stopPropagation()
             setMenuOpen(!menuOpen)
+            setShowPermissions(false)
           }}
         >
           <MoreVertIcon fontSize="small" />
         </button>
 
-        {menuOpen && (
+        {menuOpen && !showPermissions && (
           <div className="file-sidebar-menu-popup">
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                setMenuOpen(false)
-                setTitle(node.title)
-                setIsRenaming(true)
-              }}
-            >
+            <button onClick={(e) => {
+              e.stopPropagation()
+              setMenuOpen(false)
+              setTitle(node.title)
+              setIsRenaming(true)
+            }}>
               Rename
             </button>
 
-            <button
-              onClick={(e) => {
+            {isDM && (
+              <button onClick={(e) => {
                 e.stopPropagation()
-                setMenuOpen(false)
-                onDeleteFile(node._id)
-              }}
-            >
+                setShowPermissions(true)
+              }}>
+                Permissions…
+              </button>
+            )}
+
+            <button onClick={(e) => {
+              e.stopPropagation()
+              setMenuOpen(false)
+              onDeleteFile(node._id)
+            }}>
               Delete
             </button>
+          </div>
+        )}
+
+        {/* Permissions submenu */}
+        {menuOpen && showPermissions && (
+          <div className="file-sidebar-menu-popup file-permissions-popup" onClick={e => e.stopPropagation()}>
+            <div className="permissions-header">
+              <button className="permissions-back" onClick={(e) => {
+                e.stopPropagation()
+                setShowPermissions(false)
+              }}>
+                ← Permissions
+              </button>
+            </div>
+
+            <label className="permission-row">
+              <input
+                type="checkbox"
+                checked={isGloballyVisible}
+                onChange={toggleGlobalVisibility}
+              />
+              Visible to all players
+            </label>
+
+            {!isGloballyVisible && campaignPlayers.length === 0 && (
+              <p className="permissions-empty">No players in campaign</p>
+            )}
+
+            {!isGloballyVisible && campaignPlayers.map(playerId => {
+              const allowed = Array.isArray(visibleTo) && visibleTo.includes(playerId)
+              return (
+                <label key={playerId} className="permission-row">
+                  <input
+                    type="checkbox"
+                    checked={allowed}
+                    onChange={() => togglePlayer(playerId)}
+                  />
+                  <span className="permission-player-id">{playerUsernames[playerId] ?? playerId.slice(-6)}</span>
+                </label>
+              )
+            })}
           </div>
         )}
       </div>
