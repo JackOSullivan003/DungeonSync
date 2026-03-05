@@ -34,6 +34,9 @@ export const FileBaseSchema = z.object({
     .enum(["folder", "file"])
     .optional(),
 
+  content: z
+  .string()
+  .optional(),
 
   fileType: z
     .enum(["markdown", "pdf", "image"])

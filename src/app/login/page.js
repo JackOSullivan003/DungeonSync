@@ -13,6 +13,19 @@ import {
 } from "@mui/material";
 import TopBar from "@/components/TopBar";
 
+// Shared sx styles for text fields
+const textFieldSx = {
+  '& .MuiOutlinedInput-root': {
+    backgroundColor: '#1e1e1e',
+    color: 'white',
+    '& fieldset': { borderColor: '#3a3a3a' },
+    '&:hover fieldset': { borderColor: '#c0392b' },
+    '&.Mui-focused fieldset': { borderColor: '#c0392b' },
+  },
+  '& .MuiInputLabel-root': { color: '#aaa' },
+  '& .MuiInputLabel-root.Mui-focused': { color: '#c0392b' },
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -55,10 +68,7 @@ export default function LoginPage() {
     <div className="auth-page">
       <TopBar
         left={
-          <button
-            className="primary"
-            onClick={() => router.push("/")}
-          >
+          <button className="primary" onClick={() => router.push("/")}>
             ← Home
           </button>
         }
@@ -66,19 +76,34 @@ export default function LoginPage() {
       />
 
       <Box className="auth-content">
-        <Card className="auth-card">
-          <Typography variant="h4" align="center" className="auth-title">
+        <Card sx={{
+          width: '100%',
+          maxWidth: 480,
+          borderRadius: 3,
+          padding: '2rem',
+          backgroundColor: '#2a2a2a',
+          border: '1px solid #3a3a3a',
+          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.4)',
+        }}>
+          <Typography variant="h4" align="center" sx={{
+            fontWeight: 700,
+            fontSize: '1.6rem',
+            marginBottom: '0.8rem',
+            color: 'white',
+          }}>
             Welcome Back
           </Typography>
 
-          <Typography align="center" className="auth-subtitle">
+          <Typography align="center" sx={{
+            fontWeight: 400,
+            marginBottom: '1.5rem',
+            color: '#aaa',
+          }}>
             Log in to continue
           </Typography>
 
           <Box component="form" onSubmit={handleSubmit} noValidate>
-            {createdMsg && (
-              <p className="success-msg">{createdMsg}</p>
-            )}
+            {createdMsg && <p className="success-msg">{createdMsg}</p>}
 
             <TextField
               margin="normal"
@@ -89,7 +114,7 @@ export default function LoginPage() {
               name="email"
               autoComplete="email"
               autoFocus
-              className="auth-input"
+              sx={textFieldSx}
             />
 
             <TextField
@@ -101,26 +126,34 @@ export default function LoginPage() {
               type="password"
               autoComplete="off"
               id="pass"
-              className="auth-input"
+              sx={textFieldSx}
             />
 
             {error && <p className="error-msg">{error}</p>}
 
             <FormControlLabel
-              control={<Checkbox sx={{ color: "#DA291C" }} />}
-              label="Remember me"
+              control={<Checkbox sx={{ color: '#c0392b', '&.Mui-checked': { color: '#c0392b' } }} />}
+              label={<Typography sx={{ color: '#aaa' }}>Remember me</Typography>}
             />
 
             <Button
               type="submit"
               fullWidth
               variant="contained"
-              className="auth-btn"
+              sx={{
+                backgroundColor: '#c0392b',
+                color: 'white',
+                fontWeight: 700,
+                marginTop: '1rem',
+                padding: '0.9rem 0',
+                borderRadius: '6px',
+                '&:hover': { backgroundColor: '#e74c3c' },
+              }}
             >
               Sign In
             </Button>
 
-            <Typography sx={{ mt: 2, textAlign: "center" }}>
+            <Typography sx={{ mt: 2, textAlign: 'center', color: '#aaa' }}>
               Don't have an account?{" "}
               <a href="/register" className="auth-link">
                 Register
@@ -130,5 +163,5 @@ export default function LoginPage() {
         </Card>
       </Box>
     </div>
-  );
+  )
 }

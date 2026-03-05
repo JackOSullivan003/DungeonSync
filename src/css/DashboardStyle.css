@@ -1,9 +1,6 @@
-.dashboard-page {
-  padding: 24px;
-}
-
 .dashboard-content {
   max-width: 1200px;
+  padding: 10px;
   margin: 0 auto;
 }
 
@@ -11,8 +8,10 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 25px;
   margin-top: 10px;
+  padding-bottom: 10px;
+  border-bottom: #555 2px solid;
 }
 
 .primary-btn {
@@ -36,13 +35,13 @@
 
 .campaign-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(fill, minmax(400px, 1fr));
   gap: 16px;
 }
 
 .campaign-card {
-  height: 180px;
-  background: #1a1a1a;
+  height: 200px;
+  background: #262626;
   background-size: cover;
   background-position: center;
   border-radius: 10px;
@@ -62,8 +61,8 @@
   padding: 12px;
   background: linear-gradient(
     to top,
-    rgba(0, 0, 0, 0.88),
-    rgba(0, 0, 0, 0.2)
+    rgba(0, 0, 0, 0.8),
+    rgba(0, 0, 0, 0.4)
   );
   color: white;
   display: flex;
@@ -81,7 +80,7 @@
   display: flex;
   justify-content: space-between;
   font-size: 0.8rem;
-  opacity: 0.8;
+  opacity: 0.85;
 }
 
 .icon-btn {

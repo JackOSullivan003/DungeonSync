@@ -76,7 +76,7 @@ export default function FileSidebar({ campaignId, files, setFiles, onSelect, cur
     if (!confirm('Delete this item?')) return // ask user before deleting
     await fetch(`/api/files/${id}`, { method: 'DELETE' }) // delete from server
     setFiles((prev) => prev.filter((f) => f._id !== id)) // remove from state
-    if (currentFileId === id) onSelect(null) // clear selection if deleted file was open
+    if (currentFileId?.toString() === id?.toString()) onSelect(null) // clear selection if deleted file was open
   }
 
   async function onRenameFile(id, title) {
