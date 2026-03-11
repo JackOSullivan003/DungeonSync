@@ -159,8 +159,8 @@ export async function POST(req, context) {
     title: title || "Untitled", // default title if none given
     parentId: parentObjectId, // optional parent folder
     nodeType: nodeType || "file", // sidebar rendering
-    fileType: "markdown", // default file type
-    content: "", // start with empty content
+    fileType: fileType || "markdown", //filetyle or default "markdown"
+    content: body.content || "", // content or default empty string
     updatedAt: new Date(), // track last update time
     version: 1,
   }

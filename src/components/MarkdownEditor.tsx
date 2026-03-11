@@ -256,6 +256,15 @@ export default function MarkdownEditor({
 
   useEffect(() => { registerFlush(flushSave) }, [flushSave, registerFlush])
 
+  // ── Clear file when deselected ────────────────────────────────────────────
+  useEffect(() => {
+    if (!currentFileId) {
+      setFile(null)
+      setCrepe(null)
+      setEditorKey(k => k + 1)
+    }
+  }, [currentFileId])
+
   // ── Load file on ID change ────────────────────────────────────────────────
   useEffect(() => {
     if (!currentFileId || !campaignId) return
@@ -290,7 +299,12 @@ export default function MarkdownEditor({
     URL.revokeObjectURL(url)
   }
 
-  if (!file) return <div style={{ padding: 20, color: '#aaa' }}>Loading…</div>
+  console.log('file state:', file, 'currentFileId:', currentFileId)
+
+  if (!file) return (<div style={{ padding: 20, color: '#aaa', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+    {currentFileId ? 'Loading…' : 'Select a file in the Files tab to get started'}
+  </div>
+  )
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', background: '#1e1e1e' }}>

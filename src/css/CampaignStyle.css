@@ -1,11 +1,3 @@
-/* Whole 3-column layout */
-.layout-container {
-  display: grid;
-  grid-template-columns: 320px 1fr 250px; /* Left | Middle | Right */
-  flex: 1;
-  min-height: 0;
-}
-
 /* Right sidebar (chat) */
 .chatsidebar {
   border-left: 1px solid #ccc;

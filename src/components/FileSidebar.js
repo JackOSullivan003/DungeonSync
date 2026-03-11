@@ -1,82 +1,95 @@
-'use client' // marks this as a client-side React component
+'use client'
 
-import { useEffect, useState, useMemo } from 'react'
-import FolderNode from './FolderNode' // component to render folders
-import FileNode from './FileNode' // component to render files
-import buildTree from '@/lib/Buildtreecomp' // helper to create tree structure for file & folder nodes
-import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder' // folder icon
-import CreateNewFileIcon from '@mui/icons-material/NoteAdd' // file icon
+import { useEffect, useRef, useState, useMemo } from 'react'
+import FolderNode from './FolderNode'
+import FileNode from './FileNode'
+import buildTree from '@/lib/Buildtreecomp'
+import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder'
+import CreateNewFileIcon from '@mui/icons-material/NoteAdd'
+import UploadFileIcon from '@mui/icons-material/UploadFile'
 
+export default function FileSidebar({ campaignId, files, setFiles, onSelect, currentfileId, campaign, isDM }) {
 
-export default function FileSidebar({ campaignId, files, setFiles, onSelect, currentFileId, campaign, isDM}) {
-  
-  const [playerUsernames, setPlayerUsernames] = useState({}) // { userId: username }
-  const campaignPlayers = useMemo(() => 
+  const [playerUsernames, setPlayerUsernames] = useState({})
+  const pdfInputRef = useRef(null)
+
+  const campaignPlayers = useMemo(() =>
     campaign?.players?.map(p => p.toString()) ?? []
   , [campaign])
 
-
-
   async function loadData() {
-    console.log('FileSidebar campaignId:', campaignId) // debug log
-    if (!campaignId) return console.error('campaignId undefined') // stop if campaignId missing
-    const res = await fetch(`/api/campaign/${campaignId}/files`) // fetch files for this campaign
+    if (!campaignId) return console.error('campaignId undefined')
+    const res = await fetch(`/api/campaign/${campaignId}/files`)
     const data = await res.json()
-
     if (!Array.isArray(data)) {
-      console.error("Expected files array, got:", data)
-      setFiles([]) // fail-safe
+      console.error('Expected files array, got:', data)
+      setFiles([])
       return
     }
-
-    setFiles(data) // store files in parent state
+    setFiles(data)
   }
 
   useEffect(() => {
-    loadData() // load files when campaignId changes
+    loadData()
   }, [campaignId])
 
   async function onCreateFile(parentId = null) {
-    console.log('onCreateFile parentId:', parentId)
     if (!campaignId) return console.error('campaignId undefined')
     const res = await fetch(`/api/campaign/${campaignId}/files`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title: 'Untitled',
-        parentId,
-        nodeType: 'file',
-        fileType: 'markdown'
-      })
+      body: JSON.stringify({ title: 'Untitled', parentId, nodeType: 'file', fileType: 'markdown' }),
     })
     const created = await res.json()
-    setFiles((prev) => [...prev, created])   // add new file to state
-    onSelect(created._id.toString()) // open new file
+    setFiles(prev => [...prev, created])
+    onSelect(created._id.toString())
   }
 
   async function onCreateFolder(parentId = null) {
     if (!campaignId) return console.error('campaignId undefined')
-
     const res = await fetch(`/api/campaign/${campaignId}/files`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title: 'New Folder',
-        parentId,
-        nodeType: 'folder'
-      })
+      body: JSON.stringify({ title: 'New Folder', parentId, nodeType: 'folder' }),
     })
-
     const created = await res.json()
-    setFiles((prev) => [...prev, created]) // add folder to state
+    setFiles(prev => [...prev, created])
   }
 
-  
+  // ── PDF upload 
+  async function onUploadPDF(e) {
+    const file = e.target.files?.[0]
+    if (!file || !campaignId) return
+    e.target.value = '' // reset input so same file can be re-uploaded
+
+    const reader = new FileReader()
+    reader.onload = async () => {
+      const base64 = reader.result.split(',')[1]
+
+      // Create the file record first with an empty content placeholder
+      const res = await fetch(`/api/campaign/${campaignId}/files`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: file.name.replace(/\.pdf$/i, ''),
+          parentId: null,
+          nodeType: 'file',
+          fileType: 'pdf',
+          content: base64,
+        }),
+      })
+      const created = await res.json()
+      setFiles(prev => [...prev, created])
+      onSelect(created._id.toString())
+    }
+    reader.readAsDataURL(file)
+  }
+
   async function onDeleteFile(id) {
-    if (!confirm('Delete this item?')) return // ask user before deleting
-    await fetch(`/api/files/${id}`, { method: 'DELETE' }) // delete from server
-    setFiles((prev) => prev.filter((f) => f._id !== id)) // remove from state
-    if (currentFileId?.toString() === id?.toString()) onSelect(null) // clear selection if deleted file was open
+    if (!confirm('Delete this item?')) return
+    await fetch(`/api/files/${id}`, { method: 'DELETE' })
+    setFiles(prev => prev.filter(f => f._id !== id))
+    if (currentfileId?.toString() === id?.toString()) onSelect(null)
   }
 
   async function onRenameFile(id, title) {
@@ -85,9 +98,9 @@ export default function FileSidebar({ campaignId, files, setFiles, onSelect, cur
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title })
     })
-    // update title in parent state
-    setFiles((prev) =>
-      prev.map((f) => (f._id === id ? { ...f, title } : f))
+     // update title in parent state
+    setFiles(prev =>
+      prev.map(f => f._id === id ? { ...f, title } : f)
     )
   }
 
@@ -124,12 +137,23 @@ export default function FileSidebar({ campaignId, files, setFiles, onSelect, cur
   return (
     <div className="file-sidebar">
       <div className="file-sidebar-top-btns">
-        <button onClick={() => onCreateFile(null)}>
-          <CreateNewFileIcon /> {/* button to create file */}
+        <button onClick={() => onCreateFile(null)} title="New file">
+          <CreateNewFileIcon />
         </button>
-        <button onClick={() => onCreateFolder(null)}>
-          <CreateNewFolderIcon /> {/* button to create folder */}
+        <button onClick={() => onCreateFolder(null)} title="New folder">
+          <CreateNewFolderIcon />
         </button>
+        <button onClick={() => pdfInputRef.current?.click()} title="Upload PDF">
+          <UploadFileIcon />
+        </button>
+        {/* Hidden file input for PDF upload */}
+        <input
+          ref={pdfInputRef}
+          type="file"
+          accept="application/pdf"
+          style={{ display: 'none' }}
+          onChange={onUploadPDF}
+        />
       </div>
 
       <hr />
@@ -150,7 +174,7 @@ export default function FileSidebar({ campaignId, files, setFiles, onSelect, cur
                 onRename={onRenameFile}
                 onDelete={onDeleteFile}
                 onSelect={onSelect}
-                currentFileId={currentFileId}
+                currentfileId={currentfileId}
                 isDM={isDM}
                 campaignPlayers={playerUsernames}
                 onPermissionChange={onPermissionChange}
@@ -160,7 +184,7 @@ export default function FileSidebar({ campaignId, files, setFiles, onSelect, cur
                 key={node._id}
                 node={node}
                 onSelect={onSelect}
-                currentFileId={currentFileId}
+                currentfileId={currentfileId}
                 onRenameFile={onRenameFile}
                 onDeleteFile={onDeleteFile}
                 isDM={isDM}

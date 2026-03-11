@@ -2,6 +2,7 @@
 
 import { useRef, useState, useEffect } from 'react'
 import FileIcon from '@mui/icons-material/Description'
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 import LockIcon from '@mui/icons-material/Lock'
 
@@ -12,10 +13,12 @@ export default function FileNode({
   onRenameFile,
   onDeleteFile,
   isDM,
-  campaignPlayers, // array of player userIds (strings)
-  onPermissionChange, // (fileId, visibleTo) => void
+  campaignPlayers,
+  onPermissionChange,
 }) {
   const isActive = node._id === currentFileId
+  const isPDF = node.fileType === 'pdf'
+
   const [menuOpen, setMenuOpen] = useState(false)
   const [isRenaming, setIsRenaming] = useState(false)
   const [title, setTitle] = useState(node.title)
@@ -50,22 +53,6 @@ export default function FileNode({
     onPermissionChange(node._id, next)
   }
 
-  async function handleDownload() {
-    // fetch latest content directly from API to ensure we get the saved version
-    const res = await fetch(`/api/files/${node._id}`)
-    if (!res.ok) return console.error('Failed to fetch file for download')
-    const file = await res.json()
-
-    const blob = new Blob([file.content || ''], { type: 'text/markdown' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${file.title || 'untitled'}.md`
-    a.click()
-    URL.revokeObjectURL(url)
-  }
-
-
   function togglePlayer(playerId) {
     const current = Array.isArray(visibleTo) ? visibleTo : []
     const next = current.includes(playerId)
@@ -74,13 +61,42 @@ export default function FileNode({
     onPermissionChange(node._id, next)
   }
 
+  async function handleDownload() {
+    const res = await fetch(`/api/files/${node._id}`)
+    if (!res.ok) return console.error('Failed to fetch file for download')
+    const file = await res.json()
+
+    if (isPDF) {
+      // Decode base64 PDF and download
+      const binary = atob(file.content || '')
+      const bytes = new Uint8Array(binary.length)
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
+      const blob = new Blob([bytes], { type: 'application/pdf' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${file.title || 'untitled'}.pdf`
+      a.click()
+      URL.revokeObjectURL(url)
+    } else {
+      // Markdown download
+      const blob = new Blob([file.content || ''], { type: 'text/markdown' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `${file.title || 'untitled'}.md`
+      a.click()
+      URL.revokeObjectURL(url)
+    }
+  }
+
   return (
     <div
       className={`file-sidebar-row file-sidebar-node ${isActive ? 'active' : ''} ${!isGloballyVisible ? 'file-hidden-from-players' : ''}`}
       onClick={() => onSelect(node._id)}
     >
       <div className="file-sidebar-label">
-        <FileIcon fontSize="small" />
+        {isPDF ? <PictureAsPdfIcon fontSize="small" /> : <FileIcon fontSize="small" />}
         {!isGloballyVisible && <LockIcon fontSize="small" className="file-lock-icon" />}
 
         {isRenaming ? (
@@ -121,16 +137,13 @@ export default function FileNode({
               Rename
             </button>
 
-            <button
-              onClick={(e) => {
-                e.stopPropagation()
-                setMenuOpen(false)
-                handleDownload()
-              }}
-            >
+            <button onClick={(e) => {
+              e.stopPropagation()
+              setMenuOpen(false)
+              handleDownload()
+            }}>
               Download
             </button>
-
 
             {isDM && (
               <button onClick={(e) => {
@@ -151,7 +164,6 @@ export default function FileNode({
           </div>
         )}
 
-        {/* Permissions submenu */}
         {menuOpen && showPermissions && (
           <div className="file-sidebar-menu-popup file-permissions-popup" onClick={e => e.stopPropagation()}>
             <div className="permissions-header">
@@ -176,7 +188,7 @@ export default function FileNode({
               <p className="permissions-empty">No players in campaign</p>
             )}
 
-            {!isGloballyVisible && campaignPlayers.map(playerId => {
+            {!isGloballyVisible && Object.entries(campaignPlayers).map(([playerId, username]) => {
               const allowed = Array.isArray(visibleTo) && visibleTo.includes(playerId)
               return (
                 <label key={playerId} className="permission-row">
@@ -185,7 +197,7 @@ export default function FileNode({
                     checked={allowed}
                     onChange={() => togglePlayer(playerId)}
                   />
-                  <span className="permission-player-id">{playerUsernames[playerId] ?? playerId.slice(-6)}</span>
+                  <span className="permission-player-id">{username}</span>
                 </label>
               )
             })}
