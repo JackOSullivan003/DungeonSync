@@ -52,13 +52,12 @@ export async function POST(req) {
   const campaignsCollection = await getCollection('Campaigns')
 
   const campaign = {
-    title: body.title || 'New Campaign', // default title if none provided
-    description: body.description || '', // default empty description
-    backgroundImage: body.backgroundImage || '', // optional background image
-
-    dmId: new ObjectId(user._id), // set creator as DM
-    players: [], // start with no players
-
+    title: body.title || 'New Campaign',
+    description: body.description || '',
+    iconName: body.iconName || null,
+    cardColor: body.cardColor || null,
+    dmId: new ObjectId(user._id),
+    players: [],
     createdAt: new Date(),
     updatedAt: new Date()
   }

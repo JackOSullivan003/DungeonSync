@@ -50,6 +50,22 @@ export default function FileNode({
     onPermissionChange(node._id, next)
   }
 
+  async function handleDownload() {
+    // fetch latest content directly from API to ensure we get the saved version
+    const res = await fetch(`/api/files/${node._id}`)
+    if (!res.ok) return console.error('Failed to fetch file for download')
+    const file = await res.json()
+
+    const blob = new Blob([file.content || ''], { type: 'text/markdown' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${file.title || 'untitled'}.md`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+
   function togglePlayer(playerId) {
     const current = Array.isArray(visibleTo) ? visibleTo : []
     const next = current.includes(playerId)
@@ -104,6 +120,17 @@ export default function FileNode({
             }}>
               Rename
             </button>
+
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                setMenuOpen(false)
+                handleDownload()
+              }}
+            >
+              Download
+            </button>
+
 
             {isDM && (
               <button onClick={(e) => {

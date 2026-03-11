@@ -143,6 +143,18 @@ export async function PATCH(req, context) {
       updates.description = body.description // update description if valid
     }
 
+    if (typeof body.iconName === 'string') { //icon
+      updates.iconName = body.iconName
+    }
+
+    if (typeof body.cardColor === 'string') { // card background color
+      updates.cardColor = body.cardColor
+    }
+
+    if (body.backgroundImageId === null || ObjectId.isValid(body.backgroundImageId)) { // campaign card background image 
+      updates.backgroundImageId = body.backgroundImageId ? new ObjectId(body.backgroundImageId) : null
+    }
+
     if (Object.keys(updates).length === 0) {
       return NextResponse.json(
         { error: 'No valid fields to update' },

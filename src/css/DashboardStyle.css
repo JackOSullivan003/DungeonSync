@@ -1,3 +1,7 @@
+.dashboard-page {
+  padding: 24px;
+}
+
 .dashboard-content {
   max-width: 1200px;
   padding: 10px;
@@ -35,52 +39,111 @@
 
 .campaign-grid {
   display: grid;
-  grid-template-columns: repeat(fill, minmax(400px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
   gap: 16px;
 }
 
 .campaign-card {
   height: 200px;
-  background: #262626;
-  background-size: cover;
-  background-position: center;
   border-radius: 10px;
   cursor: pointer;
   overflow: hidden;
   position: relative;
-  border: 1px solid #2a2a2a;
+  border: 1px solid #3a3a3a;
   transition: border-color 0.15s ease;
+  display: flex;
+  flex-direction: column;
 }
 
 .campaign-card:hover {
   border-color: #c0392b;
 }
 
-.campaign-card-overlay {
-  height: 100%;
-  padding: 12px;
-  background: linear-gradient(
-    to top,
-    rgba(0, 0, 0, 0.8),
-    rgba(0, 0, 0, 0.4)
-  );
-  color: white;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
+/* Banner — top portion with background image and color */
+.campaign-card-banner {
+  flex: 1;
+  position: relative;
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
 }
 
-.campaign-card-header {
+/* Color overlay on top of banner background image */
+.campaign-card-color-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+/* Icon pinned to bottom-left of banner */
+.campaign-card-banner-icon {
+  position: absolute;
+  bottom: 8px;
+  left: 10px;
+  z-index: 1;
+  color: rgba(255, 255, 255, 0.85);
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,0.6));
+}
+
+/* Dot menu pinned to top-right of banner */
+.campaign-card-menu-wrapper {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 2;
+}
+
+/* Description section */
+.campaign-card-info {
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.campaign-card-info-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 8px;
 }
 
-.campaign-card-footer {
+.campaign-card-info-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.campaign-card-info-meta {
   display: flex;
-  justify-content: space-between;
-  font-size: 0.8rem;
-  opacity: 0.85;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.75rem;
+  opacity: 0.8;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.campaign-card-info-players {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.campaign-card-info-description {
+  font-size: 0.78rem;
+  opacity: 0.7;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Remove old overlay styles no longer needed */
+.campaign-card-overlay {
+  display: none;
 }
 
 .icon-btn {
@@ -94,18 +157,22 @@
   padding: 40px 20px;
   text-align: center;
   opacity: 0.85;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
 }
 
 .empty-state p {
-  margin-bottom: 20px;
+  margin-bottom: 8px;
 }
 
 .campaign-menu {
   position: absolute;
   right: 0;
   top: 28px;
-  background: #1e1e1e;
-  border: 1px solid #333;
+  background: #2a2a2a;
+  border: 1px solid #3a3a3a;
   border-radius: 6px;
   padding: 6px;
   z-index: 10;
@@ -124,7 +191,7 @@
 }
 
 .campaign-menu button:hover {
-  background: #2a2a2a;
+  background: #333;
 }
 
 .campaign-menu .danger {
@@ -137,9 +204,90 @@
   letter-spacing: 0.3rem;
   text-align: center;
   padding: 16px;
-  background: #111;
+  background: #1e1e1e;
   border-radius: 8px;
-  border: 1px solid #333;
+  border: 1px solid #3a3a3a;
   color: #c0392b;
   margin: 12px 0;
+}
+
+/* Large modal for create/edit with more fields */
+.modal.large {
+  width: 560px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+/* Icon picker grid */
+.icon-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.icon-picker-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  border: 1px solid #3a3a3a;
+  background: #1e1e1e;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s ease;
+}
+
+.icon-picker-btn:hover {
+  border-color: #c0392b;
+}
+
+.icon-picker-btn.selected {
+  border-color: #c0392b;
+  background: rgba(192, 57, 43, 0.2);
+}
+
+/* Color palette swatches */
+.color-palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.color-swatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid #3a3a3a;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s ease;
+}
+
+.color-swatch:hover {
+  border-color: white;
+}
+
+.color-swatch.selected {
+  border-color: white;
+}
+
+.swatch-check {
+  font-size: 12px;
+  color: white;
+  text-shadow: 0 0 3px black;
+}
+
+/* File input for background image upload */
+.file-input {
+  margin-top: 6px;
+  color: #aaa;
+  font-size: 0.85rem;
+  width: 100%;
 }
