@@ -18,6 +18,8 @@ export default async function DashboardPage() {
     name: user.name ?? null,
     type: user.type ?? null,
     username: user.username ?? null,
+    avatar: user.avatar ?? null,
+    avatarMimeType: user.avatarMimeType ?? null,
   }
 
 

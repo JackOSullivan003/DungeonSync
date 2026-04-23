@@ -12,7 +12,8 @@ export default async function ProfilePage() {
     username: user.username,
     email: user.email,
     bio: user.bio ?? '',
-    avatarUrl: user.avatarUrl ?? null,
+    avatar: user.avatar ?? null,
+    avatarMimeType: user.avatarMimeType ?? null,
     joinedAt: user._id.getTimestamp(), //the _id value has a embedded timestamp of when the file was created, this can be used for the joinedAt value instead of a individual field
   }} />
 }

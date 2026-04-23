@@ -8,6 +8,8 @@ import AccountCircleIcon from '@mui/icons-material/AccountCircle'
 export default function PublicProfileClient({ profile, currentUser }) {
   const router = useRouter()
 
+  const avatarSrc = profile.avatar && profile.avatarMimeType ? `data:${profile.avatarMimeType};base64,${profile.avatar}` : null
+
   const joinedDate = new Date(profile.joinedAt).toLocaleDateString('en-US', {
     year: 'numeric', month: 'long', day: 'numeric'
   })
@@ -22,8 +24,21 @@ export default function PublicProfileClient({ profile, currentUser }) {
 
       <div className="profile-page-content">
         <div className="profile-avatar-section">
-          {/* TODO: replace with cloud-hosted avatar image when upload is implemented */}
-          <AccountCircleIcon style={{ fontSize: 96 }} />
+          {avatarSrc ? (
+            <img
+              src={avatarSrc}
+              alt={`${profile.username}'s avatar`}
+              style={{
+                width: 96,
+                height: 96,
+                borderRadius: '50%',
+                objectFit: 'cover',
+                display: 'block',
+              }}
+            />
+          ) : (
+            <AccountCircleIcon style={{ fontSize: 96 }} />
+          )}
         </div>
 
         <div className="profile-form">

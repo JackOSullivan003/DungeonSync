@@ -1,19 +1,26 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import TopBar from '@/components/TopBar'
 import ProfileMenu from '@/components/ProfileMenu'
 import AccountCircleIcon from '@mui/icons-material/AccountCircle'
+import EditIcon from '@mui/icons-material/Edit'
 
 export default function ProfileClient({ user }) {
   const router = useRouter()
+  const fileInputRef = useRef(null)
+
   const [name, setName] = useState(user.name ?? '')
   const [username, setUsername] = useState(user.username ?? '')
   const [bio, setBio] = useState(user.bio ?? '')
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [saving, setSaving] = useState(false)
+
+  const [avatar, setAvatar] = useState(user.avatar ?? null)
+  const [avatarMimeType, setAvatarMimeType] = useState(user.avatarMimeType ?? null)
+  const [uploading, setUploading] = useState(false)
 
   async function saveProfile() {
     setSaving(true)
@@ -33,6 +40,41 @@ export default function ProfileClient({ user }) {
     setSuccess(true)
   }
 
+  async function handleAvatarChange(e) {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    setUploading(true)
+
+    const base64 = await new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result.split(',')[1])
+      reader.onerror = reject
+      reader.readAsDataURL(file)
+    })
+
+    try {
+      const res = await fetch('/api/user/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ avatar: base64, avatarMimeType: file.type }),
+      })
+
+      if (!res.ok) throw new Error('Upload failed')
+
+      setAvatar(base64)
+      setAvatarMimeType(file.type)
+    } catch (err) {
+      console.error('Avatar upload failed:', err)
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const avatarSrc = avatar && avatarMimeType
+    ? `data:${avatarMimeType};base64,${avatar}`
+    : null
+
   const joinedDate = new Date(user.joinedAt).toLocaleDateString('en-US', {
     year: 'numeric', month: 'long', day: 'numeric'
   })
@@ -47,9 +89,62 @@ export default function ProfileClient({ user }) {
 
       <div className="profile-page-content">
         <div className="profile-avatar-section">
-          {/* TODO: replace with image upload to cloud service (e.g. Cloudinary) */}
-          <AccountCircleIcon style={{ fontSize: 96 }} />
-          <button className="primary-btn" disabled>Change Avatar</button>
+
+          {/* Avatar with edit overlay */}
+          <div
+            style={{ position: 'relative', width: 96, height: 96, display: 'inline-block' }}
+          >
+            {avatarSrc ? (
+              <img
+                src={avatarSrc}
+                alt="Your avatar"
+                style={{
+                  width: 96,
+                  height: 96,
+                  borderRadius: '50%',
+                  objectFit: 'cover',
+                  display: 'block',
+                }}
+              />
+            ) : (
+              <AccountCircleIcon style={{ fontSize: 96 }} />
+            )}
+
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              style={{
+                position: 'absolute',
+                bottom: 0,
+                right: 0,
+                width: 28,
+                height: 28,
+                borderRadius: '50%',
+                background: '#1976d2',
+                border: '2px solid #1e1e1e',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: uploading ? 'wait' : 'pointer',
+                padding: 0,
+              }}
+              title="Upload profile picture"
+            >
+              <EditIcon style={{ fontSize: 14, color: '#fff' }} />
+            </button>
+          </div>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/gif"
+            style={{ display: 'none' }}
+            onChange={handleAvatarChange}
+          />
+
+          {uploading && (
+            <p style={{ fontSize: '0.8rem', color: '#aaa', marginTop: 6 }}>Uploading…</p>
+          )}
         </div>
 
         <div className="profile-form">

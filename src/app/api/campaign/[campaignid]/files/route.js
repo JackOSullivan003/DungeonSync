@@ -161,6 +161,7 @@ export async function POST(req, context) {
     nodeType: nodeType || "file", // sidebar rendering
     fileType: fileType || "markdown", //filetyle or default "markdown"
     content: body.content || "", // content or default empty string
+    mimeType: body.mimeType || null, // mimeType for images
     updatedAt: new Date(), // track last update time
     version: 1,
   }

@@ -18,6 +18,7 @@ export default function FileNode({
 }) {
   const isActive = node._id === currentFileId
   const isPDF = node.fileType === 'pdf'
+  const isImage = node.fileType === 'image'
 
   const [menuOpen, setMenuOpen] = useState(false)
   const [isRenaming, setIsRenaming] = useState(false)
@@ -65,21 +66,21 @@ export default function FileNode({
     const res = await fetch(`/api/files/${node._id}`)
     if (!res.ok) return console.error('Failed to fetch file for download')
     const file = await res.json()
-
-    if (isPDF) {
-      // Decode base64 PDF and download
+ 
+    if (isPDF || isImage) {
+      const mimeType = isImage ? (file.mimeType || 'image/jpeg') : 'application/pdf'
+      const ext = isImage ? (file.mimeType?.split('/')[1] || 'jpg') : 'pdf'
       const binary = atob(file.content || '')
       const bytes = new Uint8Array(binary.length)
       for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i)
-      const blob = new Blob([bytes], { type: 'application/pdf' })
+      const blob = new Blob([bytes], { type: mimeType })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `${file.title || 'untitled'}.pdf`
+      a.download = `${file.title || 'untitled'}.${ext}`
       a.click()
       URL.revokeObjectURL(url)
     } else {
-      // Markdown download
       const blob = new Blob([file.content || ''], { type: 'text/markdown' })
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')

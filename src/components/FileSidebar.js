@@ -11,7 +11,7 @@ import UploadFileIcon from '@mui/icons-material/UploadFile'
 export default function FileSidebar({ campaignId, files, setFiles, onSelect, currentfileId, campaign, isDM }) {
 
   const [playerUsernames, setPlayerUsernames] = useState({})
-  const pdfInputRef = useRef(null)
+  const uploadInputRef = useRef(null) 
 
   const campaignPlayers = useMemo(() =>
     campaign?.players?.map(p => p.toString()) ?? []
@@ -56,33 +56,54 @@ export default function FileSidebar({ campaignId, files, setFiles, onSelect, cur
     setFiles(prev => [...prev, created])
   }
 
-  // ── PDF upload 
-  async function onUploadPDF(e) {
+  // File Upload - handles md, pdf and images
+  async function onUploadFile(e) {
     const file = e.target.files?.[0]
     if (!file || !campaignId) return
-    e.target.value = '' // reset input so same file can be re-uploaded
-
+    e.target.value = ''
+ 
+    const ext = file.name.split('.').pop().toLowerCase()
+    const imageExts = ['png', 'jpg', 'jpeg', 'gif', 'webp']
+ 
+    let fileType
+    if (ext === 'md') fileType = 'markdown'
+    else if (ext === 'pdf') fileType = 'pdf'
+    else if (imageExts.includes(ext)) fileType = 'image'
+    else return console.error('Unsupported file type:', ext)
+ 
     const reader = new FileReader()
+ 
     reader.onload = async () => {
-      const base64 = reader.result.split(',')[1]
-
-      // Create the file record first with an empty content placeholder
+      let content
+      let mimeType = null
+ 
+      if (fileType === 'markdown') {
+        // Plain text — store as-is
+        content = reader.result
+      } else {
+        // Binary — store as base64
+        content = reader.result.split(',')[1]
+        mimeType = file.type
+      }
+ 
+      const title = file.name.replace(/\.[^.]+$/, '') // strip extension
+ 
       const res = await fetch(`/api/campaign/${campaignId}/files`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: file.name.replace(/\.pdf$/i, ''),
-          parentId: null,
-          nodeType: 'file',
-          fileType: 'pdf',
-          content: base64,
-        }),
+        body: JSON.stringify({ title, parentId: null, nodeType: 'file', fileType, content, mimeType }),
       })
+ 
       const created = await res.json()
       setFiles(prev => [...prev, created])
       onSelect(created._id.toString())
     }
-    reader.readAsDataURL(file)
+ 
+    if (fileType === 'markdown') {
+      reader.readAsText(file)
+    } else {
+      reader.readAsDataURL(file)
+    }
   }
 
   async function onDeleteFile(id) {
@@ -143,16 +164,16 @@ export default function FileSidebar({ campaignId, files, setFiles, onSelect, cur
         <button onClick={() => onCreateFolder(null)} title="New folder">
           <CreateNewFolderIcon />
         </button>
-        <button onClick={() => pdfInputRef.current?.click()} title="Upload PDF">
+        <button onClick={() => uploadInputRef.current?.click()} title="Upload File">
           <UploadFileIcon />
         </button>
         {/* Hidden file input for PDF upload */}
         <input
-          ref={pdfInputRef}
+          ref={uploadInputRef}
           type="file"
-          accept="application/pdf"
+          accept=".md, .pdf, .png, .jpg, .jpeg, .wedp"
           style={{ display: 'none' }}
-          onChange={onUploadPDF}
+          onChange={onUploadFile}
         />
       </div>
 

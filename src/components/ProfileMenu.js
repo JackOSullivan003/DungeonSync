@@ -4,12 +4,11 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter } from "next/navigation"
 import AccountCircleIcon from '@mui/icons-material/AccountCircle'
 
-export default function ProfileMenu( { user }) {
+export default function ProfileMenu({ user }) {
   const router = useRouter()
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
 
-  // Close menu when clicking outside
   useEffect(() => {
     const handler = (e) => {
       if (ref.current && !ref.current.contains(e.target)) {
@@ -22,35 +21,48 @@ export default function ProfileMenu( { user }) {
 
   async function handleLogout() {
     try {
-      await fetch("/api/user/logout", {
-        method: "POST",
-      })
+      await fetch("/api/user/logout", { method: "POST" })
     } finally {
       router.push("/")
-      router.refresh() // important: clears server cache
+      router.refresh()
     }
   }
 
+  const avatarSrc = user?.avatar && user?.avatarMimeType
+    ? `data:${user.avatarMimeType};base64,${user.avatar}`
+    : null
 
   return (
     <div className="profile-menu" ref={ref}>
-      
       <button
         className="profile-btn"
         onClick={() => setOpen(!open)}
-        >
-        <AccountCircleIcon fontSize="large" />
+      >
+        {avatarSrc ? (
+          <img
+            src={avatarSrc}
+            alt="Profile"
+            style={{
+              width: 35,
+              height: 35,
+              borderRadius: '50%',
+              objectFit: 'cover',
+              display: 'block',
+            }}
+          />
+        ) : (
+          <AccountCircleIcon fontSize="large" />
+        )}
       </button>
 
       {open && (
         <div className="profile-dropdown">
           <p>Hello, {user.username}</p>
-          <div className="divider" />          
+          <div className="divider" />
           <button onClick={() => { setOpen(false); router.push('/profile') }}>Profile</button>
           <button>Settings</button>
           <div className="divider" />
-          <button className="danger"
-          onClick={handleLogout}>Log out</button>
+          <button className="danger" onClick={handleLogout}>Log out</button>
         </div>
       )}
     </div>

@@ -20,7 +20,8 @@ export async function GET(req, context) {
     username: found.username,
     name: found.name,
     bio: found.bio ?? '',
-    avatarUrl: found.avatarUrl ?? null,
+    avatar: found.avatar ?? null,
+    avatarMimeType: found.avatarMimeType ?? null,
     joinedAt: found._id.getTimestamp(),
   })
 }

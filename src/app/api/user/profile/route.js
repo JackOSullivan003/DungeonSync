@@ -11,7 +11,8 @@ export async function GET(req) {
     username: user.username,
     email: user.email,
     bio: user.bio ?? '',
-    avatarUrl: user.avatarUrl ?? null,
+    avatar: user.avatar ?? null, //no longer URL, as profile pic is also stored in DB now
+    avatarMimeType: user.avatarMimeType ?? null,
     joinedAt: user._id.getTimestamp(), // MongoDB ObjectId contains creation timestamp
   })
 }
@@ -20,7 +21,7 @@ export async function PATCH(req) {
   const user = await getCurrentUser()
   if (!user) return Response.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { username, bio, name } = await req.json()
+  const { username, bio, name, avatar, avatarMimeType } = await req.json()
 
   const users = await getCollection('Users')
 
@@ -39,6 +40,8 @@ export async function PATCH(req) {
         ...(username && { username }),
         ...(name && { name }),
         ...(bio !== undefined && { bio }),
+        ...(avatar !== undefined && { avatar }),
+        ...(avatarMimeType !== undefined && { avatarMimeType }),
         updatedAt: new Date()
       }
     }
