@@ -178,33 +178,32 @@ export default function CampaignPage({ user }) {
     loadCampaign()
   }, [campaignId])
 
+  // generate a random vivid colour for this session
+  function generatePresenceColour() {
+    const hue = Math.floor(Math.random() * 360)
+    return `hsl(${hue}, 85%, 60%)`
+  }
+ 
   //ably presence useEffect
   useEffect(() => {
     if (!campaignId || !user?.id) return
-
-    console.log('user in ably useEffect:', user)
+ 
     const ably = getAblyClient()
-    console.log('Ably connection state:', ably.connection.state)
-
-    ably.connection.on((stateChange) => {
-      console.log('Ably connection state change:', stateChange.current, stateChange.reason)
-    })
-
+    const colour = generatePresenceColour()
+ 
     const enter = () => {
-      console.log('enter() called, user.id:', user.id, 'campaignId:', campaignId)
       const channel = ably.channels.get(`campaign:${campaignId}:presence`)
-      channel.presence.enter({ userId: user.id }, (err) => {
+      channel.presence.enter({ userId: user.id, colour }, (err) => {
         if (err) console.error('Presence enter error:', err)
-        else console.log('Presence entered successfully for', user.id)
       })
     }
-
+ 
     if (ably.connection.state === 'connected') {
       enter()
     } else {
       ably.connection.once('connected', enter)
     }
-
+ 
     return () => {
       destroyAblyClient()
     }

@@ -54,7 +54,7 @@ export default function HomeClient({ user }) {
           <h1>Run Better D&D Campaigns</h1>
           <p>
             DungeonSync keeps your campaigns, players, notes, and sessions
-            organized — so you can focus on storytelling, not spreadsheets.
+            organized — so you can focus on storytelling.
           </p>
 
           <div className="hero-actions">

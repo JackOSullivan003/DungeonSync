@@ -110,13 +110,11 @@ export default function FolderNode({
               <button onClick={() => { setMenuOpen(false); setTitle(node.title); setIsRenaming(true) }}>
                 Rename
               </button>
-
               {isDM && (
                 <button onClick={(e) => { e.stopPropagation(); setShowPermissions(true) }}>
                   Permissions…
                 </button>
               )}
-
               <button onClick={() => { setMenuOpen(false); onDelete(node._id) }}>
                 Delete
               </button>
@@ -136,16 +134,16 @@ export default function FolderNode({
                 Visible to all players
               </label>
 
-              {!isGloballyVisible && campaignPlayers.length === 0 && (
+              {!isGloballyVisible && Object.keys(campaignPlayers).length === 0 && (
                 <p className="permissions-empty">No players in campaign</p>
               )}
 
-              {!isGloballyVisible && campaignPlayers.map(playerId => {
+              {!isGloballyVisible && Object.entries(campaignPlayers).map(([playerId, username]) => {
                 const allowed = Array.isArray(visibleTo) && visibleTo.includes(playerId)
                 return (
                   <label key={playerId} className="permission-row">
                     <input type="checkbox" checked={allowed} onChange={() => togglePlayer(playerId)} />
-                    <span className="permission-player-id">{playerUsernames[playerId] ?? playerId.slice(-6)}</span>
+                    <span className="permission-player-id">{username}</span>
                   </label>
                 )
               })}
@@ -155,7 +153,7 @@ export default function FolderNode({
       </div>
 
       {expanded && node.children?.length > 0 && (
-        <div style={{ paddingLeft: 16 }}>
+        <div className="file-tree-children">
           {node.children.map((child) =>
             child.nodeType === 'folder' ? (
               <FolderNode

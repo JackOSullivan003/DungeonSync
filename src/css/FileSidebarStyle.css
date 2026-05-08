@@ -21,8 +21,9 @@
   background-color: transparent;
   color: #aaa;
   cursor: pointer;
-  padding: 4px 6px;
+  padding: 3px 6px;
   border-radius: 4px;
+  line-height: 0;
 }
 
 .file-sidebar button:hover {
@@ -41,18 +42,21 @@
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
+  padding-bottom: 8px;
 }
 
-/* Shared filesidebar node styles */
+/* Shared node row */
 .file-sidebar-node {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 6px 8px;
+  padding: 3px 6px;
   border-radius: 4px;
   cursor: pointer;
   position: relative;
-  transition: background-color 0.12s ease;
+  height: 30px;
+  box-sizing: border-box;
+  transition: background-color 0.1s ease;
 }
 
 .file-sidebar-node:hover {
@@ -71,6 +75,9 @@
   gap: 6px;
   min-width: 0;
   overflow: hidden;
+  flex: 1;
+  font-size: 0.88rem;
+  color: #ccc;
 }
 
 .file-sidebar-label span {
@@ -79,20 +86,42 @@
   text-overflow: ellipsis;
 }
 
-/* Dot menu */
-.file-sidebar-dots-btn {
-  opacity: 0;
-  background: transparent;
-  border: none;
+.file-sidebar-label svg {
+  flex-shrink: 0;
+  font-size: 18px !important;
   color: #aaa;
-  cursor: pointer;
-  padding: 2px;
+}
+
+.file-sidebar-node.active .file-sidebar-label svg {
+  color: #e74c3c;
+}
+
+/* Dot menu button */
+.file-sidebar-menu {
+  position: relative;
   flex-shrink: 0;
 }
 
-.file-sidebar-row:hover .file-sidebar-dots-btn,
-.file-sidebar-row.active .file-sidebar-dots-btn {
+.file-sidebar-dots-btn {
+  opacity: 0;
+  background: transparent !important;
+  border: none;
+  color: #aaa;
+  cursor: pointer;
+  padding: 2px !important;
+  line-height: 0;
+  flex-shrink: 0;
+  border-radius: 3px !important;
+}
+
+.file-sidebar-node:hover .file-sidebar-dots-btn,
+.file-sidebar-node.active .file-sidebar-dots-btn {
   opacity: 1;
+}
+
+.file-sidebar-dots-btn:hover {
+  color: white !important;
+  background-color: rgba(255, 255, 255, 0.1) !important;
 }
 
 /* Popup menu */
@@ -106,6 +135,7 @@
   padding: 4px;
   z-index: 20;
   min-width: 150px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .file-sidebar-menu-popup button {
@@ -113,28 +143,57 @@
   align-items: center;
   gap: 6px;
   width: 100%;
-  background: none;
+  background: none !important;
   border: none;
-  color: white;
-  padding: 6px 8px;
+  color: #ccc !important;
+  padding: 5px 8px !important;
   cursor: pointer;
   text-align: left;
   border-radius: 4px;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
+  height: 20px !important;
+  opacity: 1 !important;
 }
 
 .file-sidebar-menu-popup button:hover {
-  background: #2a2a2a;
+  background: #2a2a2a !important;
+  color: white !important;
 }
 
-/* Hidden from players indicator */
-.file-hidden-from-players {
-  opacity: 1;
+/* Tree indent lines */
+.file-tree-children {
+  position: relative;
+  padding-left: 16px;
 }
 
+.file-tree-children::before {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 0;
+  bottom: 4px;
+  width: 1px;
+  background: #2e2e2e;
+}
+
+.file-tree-children > div {
+  position: relative;
+}
+
+.file-tree-children > div::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 13px;
+  width: 7px;
+  height: 1px;
+  background: #2e2e2e;
+}
+
+/* Lock icon */
 .file-lock-icon {
   color: #c0392b !important;
-  font-size: 14px !important;
+  font-size: 13px !important;
   flex-shrink: 0;
 }
 
@@ -144,15 +203,15 @@
 }
 
 .permissions-header {
-  border-bottom: 1px solid #333;
-  padding-bottom: 4px;
-  margin-bottom: 4px;
+  border-bottom: 1px solid #2a2a2a;
+  padding-bottom: 3px;
+  margin-bottom: 3px;
 }
 
 .permissions-back {
-  font-size: 0.8rem;
-  color: #aaa !important;
-  padding: 4px 6px !important;
+  font-size: 0.78rem !important;
+  color: #888 !important;
+  padding: 3px 6px !important;
 }
 
 .permissions-back:hover {
@@ -163,11 +222,11 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 5px 8px;
-  font-size: 0.85rem;
+  padding: 4px 8px;
+  font-size: 0.82rem;
   cursor: pointer;
   border-radius: 4px;
-  color: white;
+  color: #ccc;
 }
 
 .permission-row:hover {
@@ -184,7 +243,13 @@
 }
 
 .permissions-empty {
-  font-size: 0.8rem;
-  color: #666;
-  padding: 6px 8px;
+  font-size: 0.78rem;
+  color: #555;
+  padding: 5px 8px;
+}
+
+hr {
+  border: none;
+  border-top: 1px solid #aaa;
+  margin: 0 0 6px 0;
 }

@@ -5,23 +5,37 @@ import { useRouter } from 'next/navigation'
 import AccountCircleIcon from '@mui/icons-material/AccountCircle'
 import { getAblyClient } from '@/lib/ably'
 
-function Avatar({ avatar, avatarMimeType, username, size = 32 }) {
+function Avatar({ avatar, avatarMimeType, username, size = 32, color }) {
   const src = avatar && avatarMimeType ? `data:${avatarMimeType};base64,${avatar}` : null
-  return src ? (
-    <img
-      src={src}
-      alt={username}
-      style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }}
-    />
-  ) : (
-    <AccountCircleIcon style={{ fontSize: size, color: '#666', flexShrink: 0 }} />
+  return (
+    <div style={{
+      width: size,
+      height: size,
+      borderRadius: '50%',
+      border: color ? `2.5px solid ${color}` : '2.5px solid transparent',
+      flexShrink: 0,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      boxSizing: 'border-box',
+    }}>
+      {src ? (
+        <img
+          src={src}
+          alt={username}
+          style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover', display: 'block' }}
+        />
+      ) : (
+        <AccountCircleIcon style={{ fontSize: size - 4, color: '#666' }} />
+      )}
+    </div>
   )
 }
 
 export default function PlayersMenu({ campaignId, currentUserId, isDM, gmId }) {
   const router = useRouter()
   const [members, setMembers] = useState([]) // [{ userId, username, avatar, avatarMimeType, isGM }]
-  const [onlineIds, setOnlineIds] = useState(new Set())
+  const [onlinePresence, setOnlinePresence] = useState({})
   const [confirmRemove, setConfirmRemove] = useState(null) // { userId, username }
   const [removing, setRemoving] = useState(false)
   const channelRef = useRef(null)
@@ -44,49 +58,61 @@ useEffect(() => {
   fetchMembers()
 }, [campaignId])
 
-// Ably presence for online indicators
-useEffect(() => {
-  if (!campaignId || !currentUserId) return
-
-  const ably = getAblyClient()
-  const channel = ably.channels.get(`campaign:${campaignId}:presence`)
-  channelRef.current = channel
-
-  function syncPresence() {
-    channel.presence.get((err, presentMembers) => {
-      if (err) return
-      setOnlineIds(new Set(presentMembers.map(m => m.data?.userId).filter(Boolean)))
+  // Ably presence for online indicators and colours
+  useEffect(() => {
+    if (!campaignId || !currentUserId) return
+ 
+    const ably = getAblyClient()
+    const channel = ably.channels.get(`campaign:${campaignId}:presence`)
+    channelRef.current = channel
+ 
+    function syncPresence() {
+      channel.presence.get((err, presentMembers) => {
+        if (err) return
+        const presence = {}
+        presentMembers.forEach(m => {
+          if (m.data?.userId) {
+            presence[m.data.userId] = m.data.colour ?? '#888'
+          }
+        })
+        setOnlinePresence(presence)
+      })
+    }
+ 
+    channel.presence.subscribe((presenceMsg) => {
+      const uid = presenceMsg.data?.userId
+      const colour = presenceMsg.data?.colour ?? '#888'
+      if (!uid) return
+      setOnlinePresence(prev => {
+        const next = { ...prev }
+        if (['enter', 'present', 'update'].includes(presenceMsg.action)) {
+          next[uid] = colour
+        } else if (presenceMsg.action === 'leave') {
+          delete next[uid]
+        }
+        return next
+      })
     })
-  }
-
-  channel.presence.subscribe((presenceMsg) => {
-    const uid = presenceMsg.data?.userId
-    if (!uid) return
-    setOnlineIds(prev => {
-      const next = new Set(prev)
-      if (['enter', 'present', 'update'].includes(presenceMsg.action)) {
-        next.add(uid)
-      } else if (presenceMsg.action === 'leave') {
-        next.delete(uid)
-      }
-      return next
-    })
-  })
 
   // Poll presence until we see at least the current user, then stop
-  let attempts = 0
-  const maxAttempts = 10
-  const interval = setInterval(() => {
-    channel.presence.get((err, presentMembers) => {
-      if (err) return
-      const ids = presentMembers.map(m => m.data?.userId).filter(Boolean)
-      if (ids.length > 0 || attempts >= maxAttempts) {
-        setOnlineIds(new Set(ids))
-        clearInterval(interval)
-      }
-      attempts++
-    })
-  }, 400)
+    let attempts = 0
+    const maxAttempts = 10
+    const interval = setInterval(() => {
+      channel.presence.get((err, presentMembers) => {
+        if (err) return
+        if (presentMembers.length > 0 || attempts >= maxAttempts) {
+          const presence = {}
+          presentMembers.forEach(m => {
+            if (m.data?.userId) {
+              presence[m.data.userId] = m.data.colour ?? '#888'
+            }
+          })
+          setOnlinePresence(presence)
+          clearInterval(interval)
+        }
+        attempts++
+      })
+    }, 400)
 
   return () => {
     clearInterval(interval)
@@ -95,7 +121,7 @@ useEffect(() => {
 }, [campaignId, currentUserId])
 
 
-  // ── Remove player ─────────────────────────────────────────────────────────
+  // Remove player
   async function removePlayer(targetUserId, targetUsername) {
     setRemoving(true)
     try {
@@ -138,7 +164,8 @@ useEffect(() => {
       {/* Member list */}
       <div style={{ flex: 1, overflowY: 'auto', padding: '8px 0' }}>
         {members.map(member => {
-          const isOnline = onlineIds.has(member.userId)
+          const color = onlinePresence[member.userId] ?? null
+          const isOnline = !!color
           const isSelf = member.userId === currentUserId
           const canRemove = isDM && !member.isGM && !isSelf
 
@@ -158,7 +185,7 @@ useEffect(() => {
               onMouseEnter={e => e.currentTarget.style.background = '#2a2a2a'}
               onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
             >
-              {/* Avatar — clickable to profile */}
+              {/* Avatar - clickable to profile */}
               <div
                 onClick={() => router.push(`/profile/${member.username}`)}
                 style={{ position: 'relative', flexShrink: 0 }}
@@ -168,6 +195,7 @@ useEffect(() => {
                   avatarMimeType={member.avatarMimeType}
                   username={member.username}
                   size={34}
+                  color={color}
                 />
                 {/* Online indicator dot */}
                 <span style={{
