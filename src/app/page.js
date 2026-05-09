@@ -14,6 +14,8 @@ export default async function HomePage() {
     email: user.email,
     username: user.username,
     type: user.type,
+    avatar: user.avatar ?? null,
+    avatarMimeType: user.avatarMimeType ?? null,
   }
 
   return <HomeClient user={safeUser} />

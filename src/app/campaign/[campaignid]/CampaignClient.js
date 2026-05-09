@@ -167,6 +167,12 @@ export default function CampaignPage({ user }) {
     initiative: 280,
   })
 
+  // Session color lifted into state so it can be passed to MarkdownEditor
+  const [sessionColor] = useState(() => {
+    const hue = Math.floor(Math.random() * 360)
+    return `hsl(${hue}, 85%, 60%)`
+  })
+
   useEffect(() => {
     if (!campaignId) return
     async function loadCampaign() {
@@ -177,23 +183,16 @@ export default function CampaignPage({ user }) {
     }
     loadCampaign()
   }, [campaignId])
-
-  // generate a random vivid colour for this session
-  function generatePresenceColour() {
-    const hue = Math.floor(Math.random() * 360)
-    return `hsl(${hue}, 85%, 60%)`
-  }
  
   //ably presence useEffect
   useEffect(() => {
     if (!campaignId || !user?.id) return
  
     const ably = getAblyClient()
-    const colour = generatePresenceColour()
- 
+
     const enter = () => {
       const channel = ably.channels.get(`campaign:${campaignId}:presence`)
-      channel.presence.enter({ userId: user.id, colour }, (err) => {
+      channel.presence.enter({ userId: user.id, color: sessionColor }, (err) => {
         if (err) console.error('Presence enter error:', err)
       })
     }
@@ -207,7 +206,7 @@ export default function CampaignPage({ user }) {
     return () => {
       destroyAblyClient()
     }
-  }, [campaignId, user?.id])
+  }, [campaignId, user?.id, sessionColor])
   
 
   async function saveCampaignTitle() {
@@ -374,6 +373,9 @@ export default function CampaignPage({ user }) {
             onTitleChange={handleTitleChange}
             onDirtyChange={setIsDirty}
             registerFlush={(fn) => (flushRef.current = fn)}
+            userId={user?.id}
+            username={user?.username}
+            presencecolor={sessionColor}
           />
         )
       }

@@ -11,10 +11,15 @@ import {
   wrapInHeadingCommand,
 } from '@milkdown/kit/preset/commonmark'
 import { undoCommand, redoCommand } from '@milkdown/kit/plugin/history'
+import { editorViewCtx, prosePluginsCtx } from '@milkdown/core'
+import { EditorView } from '@milkdown/prose/view'
+import { getAblyClient } from '@/lib/ably'
+import { getSpacesClient } from '@/lib/ablySpaces'
+import { createLineLockPlugin, lineLockPluginKey } from '@/lib/lineLockPlugin'
 
 import "@milkdown/crepe/theme/common/style.css"
 
-// ─── Types ───────────────────────────────────────────────────────────────────
+// Types
 
 interface MarkdownEditorProps {
   campaignId: string
@@ -23,6 +28,9 @@ interface MarkdownEditorProps {
   onTitleChange?: (id: string, title: string) => void
   onDirtyChange?: (dirty: boolean) => void
   registerFlush?: (fn: () => Promise<void>) => void
+  userId: string
+  username: string
+  presenceColor: string
 }
 
 interface FileData {
@@ -32,7 +40,7 @@ interface FileData {
   updatedAt: number
 }
 
-// ─── Link normalizer ─────────────────────────────────────────────────────────
+// Link normalizer
 
 function normalizeMarkdownLinks(markdown: string): string {
   return markdown.replace(
@@ -54,7 +62,21 @@ function normalizeMarkdownLinks(markdown: string): string {
   )
 }
 
-// ─── Toolbar ─────────────────────────────────────────────────────────────────
+// Resolve which top-level block index a ProseMirror position falls in
+
+function getBlockIndex(doc: any, pos: number): number {
+  let offset = 0
+  for (let i = 0; i < doc.childCount; i++) {
+    const child = doc.child(i)
+    const childStart = offset + 1
+    const childEnd = offset + child.nodeSize
+    if (pos >= childStart && pos <= childEnd) return i
+    offset += child.nodeSize
+  }
+  return 0
+}
+
+// Toolbar
 
 function Toolbar({
   crepe,
@@ -72,7 +94,6 @@ function Toolbar({
     <button
       key={label}
       onMouseDown={(e) => {
-        // prevent editor blur before command fires
         e.preventDefault()
         onClick()
       }}
@@ -144,7 +165,7 @@ function Toolbar({
   )
 }
 
-// ─── Inner editor (must be inside MilkdownProvider) ──────────────────────────
+// Inner editor
 
 function EditorInner({
   file,
@@ -160,13 +181,19 @@ function EditorInner({
   onCrepeReady: (crepe: Crepe) => void
 }) {
   useEditor((root) => {
+    const lineLockPlugin = createLineLockPlugin()
+
     const crepe = new Crepe({
       root,
       defaultValue: file.content || '',
     })
 
     crepe.editor.use(listener)
+
     crepe.editor.config((ctx) => {
+      const plugins = ctx.get(prosePluginsCtx)
+      ctx.set(prosePluginsCtx, [...plugins, lineLockPlugin])
+
       const l = ctx.get(listenerCtx)
       l.markdownUpdated((_, markdown, prevMarkdown) => {
         if (markdown === prevMarkdown) return
@@ -178,7 +205,6 @@ function EditorInner({
       })
     })
 
-    // Expose crepe to toolbar after mount
     crepe.create().then(() => onCrepeReady(crepe))
 
     return crepe
@@ -187,7 +213,7 @@ function EditorInner({
   return <Milkdown />
 }
 
-// ─── Main component ───────────────────────────────────────────────────────────
+// Main component
 
 export default function MarkdownEditor({
   campaignId,
@@ -196,16 +222,25 @@ export default function MarkdownEditor({
   onTitleChange = () => {},
   onDirtyChange = () => {},
   registerFlush = () => {},
+  username,
+  presenceColor,
 }: MarkdownEditorProps) {
   const [file, setFile] = useState<FileData | null>(null)
   const [editorKey, setEditorKey] = useState(0)
   const [crepe, setCrepe] = useState<Crepe | null>(null)
   const saveTimeout = useRef<NodeJS.Timeout | null>(null)
   const fileRef = useRef<FileData | null>(null)
+  const crepeRef = useRef<Crepe | null>(null)
+  const spaceRef = useRef<any>(null)
+  const campaignIdRef = useRef<string>(campaignId)
+  const lastBlockRef = useRef<number>(-1)
+  const lockMapRef = useRef<Record<number, { username: string; color: string }>>({})
 
   useEffect(() => { fileRef.current = file }, [file])
+  useEffect(() => { crepeRef.current = crepe }, [crepe])
+  useEffect(() => { campaignIdRef.current = campaignId }, [campaignId])
 
-  // ── Sync title from sidebar renames ──────────────────────────────────────
+  // Sync title from sidebar renames
   useEffect(() => {
     if (!fileFromSidebar) return
     setFile(prev =>
@@ -215,17 +250,51 @@ export default function MarkdownEditor({
     )
   }, [fileFromSidebar])
 
-  // ── Save ─────────────────────────────────────────────────────────────────
+  // Dispatch lock map into the ProseMirror plugin
+  const applyLockMap = useCallback((lockMap: Record<number, { username: string; color: string }>) => {
+    lockMapRef.current = lockMap
+    const c = crepeRef.current
+    if (!c) return
+    try {
+      c.editor.action((ctx) => {
+        const editorView = ctx.get(editorViewCtx) as EditorView
+        const tr = editorView.state.tr.setMeta(lineLockPluginKey, { lockMap })
+        editorView.dispatch(tr)
+      })
+    } catch {
+      // editor not ready yet
+    }
+  }, [])
+
+  // Rebuild full lock map from all current space members
+  const rebuildFromMembers = useCallback(async (space: any) => {
+    try {
+      const members = await space.members.getAll()
+      const map: Record<number, { username: string; color: string }> = {}
+      for (const member of members) {
+        if (member.profileData?.username === username) continue
+        const blockIndex = member.location?.blockIndex
+        if (blockIndex == null) continue
+        map[blockIndex] = {
+          username: member.profileData?.username ?? 'Unknown',
+          color: member.profileData?.color ?? '#888888',
+        }
+      }
+      applyLockMap(map)
+    } catch {
+      // space not ready yet
+    }
+  }, [username, applyLockMap])
+
+  // Save helpers
   const saveFile = useCallback(async (changes: Partial<FileData>) => {
     const current = fileRef.current
     if (!current) return
-
     const payload = {
       ...changes,
       ...(changes.content ? { content: normalizeMarkdownLinks(changes.content) } : {}),
       lastKnownUpdatedAt: current.updatedAt,
     }
-
     try {
       const res = await fetch(`/api/files/${current._id}`, {
         method: 'PATCH',
@@ -245,7 +314,19 @@ export default function MarkdownEditor({
   const debounceSave = useCallback((changes: Partial<FileData>) => {
     onDirtyChange(true)
     if (saveTimeout.current) clearTimeout(saveTimeout.current)
-    saveTimeout.current = setTimeout(() => saveFile(changes), 1200)
+    saveTimeout.current = setTimeout(() => {
+      const current = fileRef.current
+      const fileId = current?._id
+      if (current && fileId && changes.content) {
+        const ably = getAblyClient()
+        const channel = ably.channels.get(`campaign:${campaignIdRef.current}:file:${fileId}`)
+        channel.publish('content', {
+          content: changes.content,
+          updatedAt: Date.now(),
+        }).catch(() => {})
+      }
+      saveFile(changes)
+    }, 1200)
   }, [saveFile, onDirtyChange])
 
   const flushSave = useCallback(async () => {
@@ -256,7 +337,7 @@ export default function MarkdownEditor({
 
   useEffect(() => { registerFlush(flushSave) }, [flushSave, registerFlush])
 
-  // ── Clear file when deselected ────────────────────────────────────────────
+  // Clear file when deselected
   useEffect(() => {
     if (!currentFileId) {
       setFile(null)
@@ -265,10 +346,115 @@ export default function MarkdownEditor({
     }
   }, [currentFileId])
 
-  // ── Load file on ID change ────────────────────────────────────────────────
+  // Ably Spaces: enter space on file open, subscribe to location updates
+  useEffect(() => {
+    if (!currentFileId || !campaignId || !username) return
+
+    const spaceName = `file-${currentFileId}`
+    let space: any = null
+    let active = true
+
+    async function enterSpace() {
+      try {
+        const spaces = getSpacesClient()
+        space = await spaces.get(spaceName)
+        if (!active) return
+
+        await space.enter({ username, color: presenceColor })
+        if (!active) return
+
+        spaceRef.current = space
+
+        space.locations.subscribe('update', () => {
+          if (active) rebuildFromMembers(space)
+        })
+
+        rebuildFromMembers(space)
+      } catch (err) {
+        console.error('Space enter error:', err)
+      }
+    }
+
+    enterSpace()
+
+    return () => {
+      active = false
+      if (space) {
+        space.locations.unsubscribe()
+        space.leave().catch(() => {})
+      }
+      spaceRef.current = null
+      lastBlockRef.current = -1
+      applyLockMap({})
+    }
+  }, [currentFileId, campaignId, username, presenceColor])
+
+  // Re-apply lock map when crepe remounts after a file switch
+  useEffect(() => {
+    if (!crepe || !spaceRef.current) return
+    rebuildFromMembers(spaceRef.current)
+  }, [crepe, rebuildFromMembers])
+
+  // Ably pub/sub: receive content updates from other users
+  // Updates fileRef silently — no remount so cursor position is preserved
   useEffect(() => {
     if (!currentFileId || !campaignId) return
 
+    const ably = getAblyClient()
+    const channel = ably.channels.get(`campaign:${campaignId}:file:${currentFileId}`)
+
+    channel.subscribe('content', (msg: any) => {
+      const { content, updatedAt } = msg.data
+      if (!content || !fileRef.current) return
+      // Update fileRef so the next save uses the correct base content.
+      // We do not remount the editor since line locking prevents concurrent
+      // edits on the same block — each user's local view stays consistent.
+      fileRef.current = {
+        ...fileRef.current,
+        content,
+        updatedAt: updatedAt ?? fileRef.current.updatedAt,
+      }
+    })
+
+    return () => {
+      channel.unsubscribe('content')
+    }
+  }, [currentFileId, campaignId])
+
+  // RAF loop: track cursor block and update Spaces location
+  useEffect(() => {
+    if (!crepe) return
+    let rafId: number
+    let active = true
+
+    function poll() {
+      if (!active) return
+      try {
+        crepe.editor.action((ctx) => {
+          const editorView = ctx.get(editorViewCtx) as EditorView
+          const { doc, selection } = editorView.state
+          const blockIndex = getBlockIndex(doc, selection.$anchor.pos)
+          if (blockIndex !== lastBlockRef.current) {
+            lastBlockRef.current = blockIndex
+            spaceRef.current?.locations.set({ blockIndex }).catch(() => {})
+          }
+        })
+      } catch {
+        // editor not ready, skip frame
+      }
+      rafId = requestAnimationFrame(poll)
+    }
+
+    rafId = requestAnimationFrame(poll)
+    return () => {
+      active = false
+      cancelAnimationFrame(rafId)
+    }
+  }, [crepe])
+
+  // Load file on ID change
+  useEffect(() => {
+    if (!currentFileId || !campaignId) return
     async function loadFile() {
       try {
         const res = await fetch(`/api/files/${currentFileId}`)
@@ -276,18 +462,17 @@ export default function MarkdownEditor({
         const data: FileData = await res.json()
         setFile(data)
         fileRef.current = data
-        setCrepe(null) // clear stale crepe ref while editor remounts
+        setCrepe(null)
         onDirtyChange(false)
         setEditorKey(k => k + 1)
       } catch (err) {
         console.error('Failed to load file:', err)
       }
     }
-
     loadFile()
   }, [currentFileId, campaignId])
 
-  // ── Download ──────────────────────────────────────────────────────────────
+  // Download
   function handleDownload() {
     if (!file) return
     const blob = new Blob([file.content || ''], { type: 'text/markdown' })
@@ -299,11 +484,10 @@ export default function MarkdownEditor({
     URL.revokeObjectURL(url)
   }
 
-  console.log('file state:', file, 'currentFileId:', currentFileId)
-
-  if (!file) return (<div style={{ padding: 20, color: '#aaa', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-    {currentFileId ? 'Loading…' : 'Select a file in the Files tab to get started'}
-  </div>
+  if (!file) return (
+    <div style={{ padding: 20, color: '#aaa', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      {currentFileId ? 'Loading…' : 'Select a file in the Files tab to get started'}
+    </div>
   )
 
   return (

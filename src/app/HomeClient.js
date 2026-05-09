@@ -51,6 +51,10 @@ export default function HomeClient({ user }) {
       {/* HERO */}
       <section className="hero">
         <div className="hero-content">
+          <a title="wirelizard, CC0, via Wikimedia Commons" 
+            href="https://commons.wikimedia.org/wiki/File:Twenty_sided_dice.svg">
+            <img width="160" alt="Twenty sided dice" src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Twenty_sided_dice.svg/330px-Twenty_sided_dice.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail"></img>
+          </a>
           <h1>Run Better D&D Campaigns</h1>
           <p>
             DungeonSync keeps your campaigns, players, notes, and sessions
@@ -76,7 +80,7 @@ export default function HomeClient({ user }) {
         <div className="hero-image">
           {/* HERO IMAGE PLACEHOLDER */}
           <div className="image-placeholder large">
-            Hero Image / App Preview
+            Image Placeholder
           </div>
         </div>
       </section>
@@ -96,7 +100,9 @@ export default function HomeClient({ user }) {
           </div>
 
           <div className="feature-card">
-            <div className="image-placeholder">Notes Image</div>
+            <div className="image-placeholder">
+              
+            </div>
             <h3>Session Notes & Lore</h3>
             <p>
               Track NPCs, locations, secrets, and session notes without losing
