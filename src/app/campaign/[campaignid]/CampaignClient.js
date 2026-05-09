@@ -144,7 +144,7 @@ function TabBar({ tabs, openTabIds, onOpen, onClose }) {
 
 export default function CampaignPage({ user }) {
   const params = useParams()
-  const campaignId = params.Campaignid
+  const campaignId = params.campaignid
   const router = useRouter()
 
   const [campaign, setCampaign] = useState(null)
