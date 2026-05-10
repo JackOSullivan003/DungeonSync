@@ -9,6 +9,7 @@ import ProfileMenu from '@/components/ProfileMenu'
 import Chat from '@/components/Chat'
 import Initiative from '@/components/Initiative'
 import ImagePreviewPanel from '@/components/ImagePreview'
+import PdfPreview from '@/components/PdfPreview'
 import LeftSidebar from '@/components/LeftSidebar'
 import { getAblyClient, destroyAblyClient } from '@/lib/ably'
 
@@ -144,7 +145,7 @@ function TabBar({ tabs, openTabIds, onOpen, onClose }) {
 
 export default function CampaignPage({ user }) {
   const params = useParams()
-  const campaignId = params.campaignid
+  const campaignId = params.campaignId //windows is case-Insensitive however other OSs like linux arnt, hence why a capital C folder and var caused issues, both are now changed to use a lower camelCase name
   const router = useRouter()
 
   const [campaign, setCampaign] = useState(null)
@@ -365,6 +366,7 @@ export default function CampaignPage({ user }) {
         const activeFile = files.find(f => f._id === currentFileId)
         const fileType = activeFile?.fileType ?? 'markdown'
         if (fileType === 'image') return <ImagePreviewPanel currentFileId={currentFileId} />
+        if (fileType === 'pdf') return <PdfPreview currentFileId={currentFileId} />
         return (
             <MarkdownEditor
             campaignId={campaignId}
