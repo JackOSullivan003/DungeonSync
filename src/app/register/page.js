@@ -63,7 +63,7 @@ export default function RegisterPage() {
       const data = await res.json();
 
       if (data.data === "created") {
-        window.location.href = "/login?created=true";
+        window.location.href = "/dashboard";
       } else {
         setMsg("User already exists.");
       }

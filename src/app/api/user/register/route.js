@@ -14,7 +14,6 @@ export async function GET(req) {
   const fullName = firstName + " " + lastName; // combine first and last name
   console.log(fullName); // debug log
   console.log(email);
-  console.log(pass);
 
   if (!firstName || !lastName || !email || !pass) {
     return Response.json({ data: "invalid" }); // stop if any field missing
@@ -33,9 +32,28 @@ export async function GET(req) {
     const hashedPassword = await bcrypt.hash(pass, 10); // hash password before saving
 
     // Create user
-    await collection.insertOne({ name:fullName ,email, pass:hashedPassword, type:"user" }); // save new user
+    const result = await collection.insertOne({ name:fullName ,email, pass:hashedPassword, type:"user" }); // save new user
 
-    return Response.json({ data: "created" }); // confirm user created
+    // Create session so the user is logged in immediately after registration
+    const sessions = await getCollection("Sessions");
+    const session = {
+      userId: result.insertedId,
+      createdAt: new Date(),
+      expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+    };
+
+    const sessionResult = await sessions.insertOne(session);
+
+    return new Response(
+      JSON.stringify({ data: "created" }),
+      {
+        status: 200,
+        headers: {
+          "Set-Cookie": `sessionId=${sessionResult.insertedId}; HttpOnly; Path=/; SameSite=Lax`,
+          "Content-Type": "application/json",
+        },
+      }
+    ); // confirm user created and session started
 
   } catch (error) {
     console.error("DB error:", error); // log DB error
