@@ -12,6 +12,7 @@ import ImagePreviewPanel from '@/components/ImagePreview'
 import PdfPreview from '@/components/PdfPreview'
 import LeftSidebar from '@/components/LeftSidebar'
 import { getAblyClient, destroyAblyClient } from '@/lib/ably'
+import { destroySpacesClient } from '@/lib/ablySpaces'
 
 const TABS = [
   { id: 'sidebar',    type: 'sidebar',    label: '📁 Files' },
@@ -205,6 +206,7 @@ export default function CampaignPage({ user }) {
     }
  
     return () => {
+      destroySpacesClient()
       destroyAblyClient()
     }
   }, [campaignId, user?.id, sessionColor])
@@ -377,7 +379,7 @@ export default function CampaignPage({ user }) {
             registerFlush={(fn) => (flushRef.current = fn)}
             userId={user?.id}
             username={user?.username}
-            presencecolor={sessionColor}
+            presenceColor={sessionColor}
           />
         )
       }

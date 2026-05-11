@@ -229,6 +229,7 @@ export default function MarkdownEditor({
   const [editorKey, setEditorKey] = useState(0)
   const [crepe, setCrepe] = useState<Crepe | null>(null)
   const saveTimeout = useRef<NodeJS.Timeout | null>(null)
+  const lastPublishedContentRef = useRef<string | null>(null)
   const fileRef = useRef<FileData | null>(null)
   const crepeRef = useRef<Crepe | null>(null)
   const spaceRef = useRef<any>(null)
@@ -324,6 +325,7 @@ export default function MarkdownEditor({
           content: changes.content,
           updatedAt: Date.now(),
         }).catch(() => {})
+        lastPublishedContentRef.current = changes.content
       }
       saveFile(changes)
     }, 1200)
@@ -365,6 +367,10 @@ export default function MarkdownEditor({
 
         spaceRef.current = space
 
+        space.members.subscribe('update', () => {
+          if (active) rebuildFromMembers(space)
+        })
+
         space.locations.subscribe('update', () => {
           if (active) rebuildFromMembers(space)
         })
@@ -380,6 +386,7 @@ export default function MarkdownEditor({
     return () => {
       active = false
       if (space) {
+        space.members.unsubscribe()
         space.locations.unsubscribe()
         space.leave().catch(() => {})
       }
@@ -396,7 +403,7 @@ export default function MarkdownEditor({
   }, [crepe, rebuildFromMembers])
 
   // Ably pub/sub: receive content updates from other users
-  // Updates fileRef silently — no remount so cursor position is preserved
+  // Remounts the editor so remote markdown changes become visible.
   useEffect(() => {
     if (!currentFileId || !campaignId) return
 
@@ -406,14 +413,21 @@ export default function MarkdownEditor({
     channel.subscribe('content', (msg: any) => {
       const { content, updatedAt } = msg.data
       if (!content || !fileRef.current) return
-      // Update fileRef so the next save uses the correct base content.
-      // We do not remount the editor since line locking prevents concurrent
-      // edits on the same block — each user's local view stays consistent.
-      fileRef.current = {
+
+      if (content === lastPublishedContentRef.current || content === fileRef.current.content) {
+        return
+      }
+
+      const updatedFile = {
         ...fileRef.current,
         content,
         updatedAt: updatedAt ?? fileRef.current.updatedAt,
       }
+
+      fileRef.current = updatedFile
+      setFile(updatedFile)
+      setEditorKey(k => k + 1)
+      onDirtyChange(false)
     })
 
     return () => {

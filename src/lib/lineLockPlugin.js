@@ -69,10 +69,10 @@ function buildDecorations(doc, lockMap) {
       decos.push(
         Decoration.node(offset, childEnd, {
           style: [
-            `background: ${lock.color}22`,
-            `border-left: 2px solid ${lock.color}`,
-            'padding-left: 6px',
-            'border-radius: 2px',
+            `background: ${lock.color}33`,
+            `border-left: 4px solid ${lock.color}`,
+            'padding-left: 8px',
+            'border-radius: 4px',
             'box-sizing: border-box',
             'position: relative',
           ].join(';'),
