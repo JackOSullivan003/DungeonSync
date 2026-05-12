@@ -1,5 +1,6 @@
 import { getCollection } from "@/lib/mongodb"; // helper to access MongoDB collections
 import bcrypt from "bcrypt"; // library for hashing passwords
+import { getPasswordIssues } from "@/lib/validation/password";
 
 // GET is used to register a new user account
 export async function GET(req) {
@@ -17,6 +18,14 @@ export async function GET(req) {
 
   if (!firstName || !lastName || !email || !pass) {
     return Response.json({ data: "invalid" }); // stop if any field missing
+  }
+
+  const passwordIssues = getPasswordIssues(pass, { firstName, lastName });
+  if (passwordIssues.length > 0) {
+    return Response.json(
+      { data: "weak", errors: passwordIssues },
+      { status: 400 }
+    );
   }
 
   try {

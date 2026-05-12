@@ -46,8 +46,9 @@ export default function LoginPage() {
     const data = new FormData(event.currentTarget);
     const email = data.get("email");
     const pass = data.get("pass");
+    const params = new URLSearchParams({ email, pass });
 
-    runDBCallAsync(`/api/user/login?email=${email}&pass=${pass}`);
+    runDBCallAsync(`/api/user/login?${params.toString()}`);
   };
 
   async function runDBCallAsync(url) {

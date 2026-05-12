@@ -10,6 +10,7 @@ import {
   Card
 } from "@mui/material";
 import TopBar from "@/components/TopBar";
+import { getPasswordIssues } from "@/lib/validation/password";
 
 // Shared sx styles for text fields
 const textFieldSx = {
@@ -34,6 +35,8 @@ export default function RegisterPage() {
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
   const [confirmPass, setConfirmPass] = useState("");
+  const passwordIssues = getPasswordIssues(pass, { firstName, lastName });
+  const showPasswordIssues = pass.length > 0 && passwordIssues.length > 0;
 
   const isFormValid =
     firstName &&
@@ -41,7 +44,8 @@ export default function RegisterPage() {
     email &&
     pass &&
     confirmPass &&
-    pass === confirmPass;
+    pass === confirmPass &&
+    passwordIssues.length === 0;
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -52,9 +56,19 @@ export default function RegisterPage() {
       return;
     }
 
-    runRegisterAsync(
-      `/api/user/register?first=${firstName}&last=${lastName}&email=${email}&pass=${pass}`
-    );
+    if (passwordIssues.length > 0) {
+      setMsg(passwordIssues[0]);
+      return;
+    }
+
+    const params = new URLSearchParams({
+      first: firstName,
+      last: lastName,
+      email,
+      pass,
+    });
+
+    runRegisterAsync(`/api/user/register?${params.toString()}`);
   };
 
   async function runRegisterAsync(url) {
@@ -64,6 +78,8 @@ export default function RegisterPage() {
 
       if (data.data === "created") {
         window.location.href = "/dashboard";
+      } else if (data.data === "weak") {
+        setMsg(data.errors?.[0] || "Password does not meet the requirements.");
       } else {
         setMsg("User already exists.");
       }
@@ -142,8 +158,26 @@ export default function RegisterPage() {
               label="Password"
               type="password"
               onChange={(e) => setPass(e.target.value)}
+              error={showPasswordIssues}
+              helperText={
+                showPasswordIssues
+                  ? "Use 8+ characters with uppercase, lowercase, number and special character."
+                  : ""
+              }
               sx={textFieldSx}
             />
+            {showPasswordIssues && (
+              <Box component="ul" sx={{
+                margin: '0.25rem 0 0.5rem 1.2rem',
+                padding: 0,
+                color: '#e74c3c',
+                fontSize: '0.78rem',
+              }}>
+                {passwordIssues.map(issue => (
+                  <li key={issue}>{issue}</li>
+                ))}
+              </Box>
+            )}
             <TextField
               margin="normal"
               required
