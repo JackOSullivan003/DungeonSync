@@ -1,18 +1,13 @@
-This is a [Next.js](https://nextjs.org) project ran with docker implementation
+This is a [Next.js](https://nextjs.org) project
 
 ## Getting Started for Devs
 
-First, install docker desktop (https://www.docker.com/) 
+First, install npm 
 
-then in the main folder open a terminal & run the compose.yaml file 
-
-```bash
-Docker compose up
-```
-
-next open another terminal and run next js 
+then in the main folder open a terminal & run 
 
 ```bash
+npm install 
 npm run dev
 ```
 
