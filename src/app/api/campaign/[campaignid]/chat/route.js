@@ -14,11 +14,11 @@ export async function GET(req, { params }) {
   const user = await getCurrentUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { campaignid } = await params
-  if (!ObjectId.isValid(campaignid))
+  const { campaignId } = await params
+  if (!ObjectId.isValid(campaignId))
     return NextResponse.json({ error: 'Invalid campaign' }, { status: 400 })
 
-  const campaignObjectId = new ObjectId(campaignid)
+  const campaignObjectId = new ObjectId(campaignId)
   const userObjectId = new ObjectId(user._id)
 
   const campaigns = await getCollection('Campaigns')
@@ -69,8 +69,8 @@ export async function POST(req, { params }) {
   const user = await getCurrentUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { campaignid } = await params
-  if (!ObjectId.isValid(campaignid))
+  const { campaignId } = await params
+  if (!ObjectId.isValid(campaignId))
     return NextResponse.json({ error: 'Invalid campaign' }, { status: 400 })
 
   const campaignObjectId = new ObjectId(campaignid)

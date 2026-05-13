@@ -12,7 +12,7 @@ export async function GET(req, context) {
     }
 
     const params = await context.params
-    const id = params.campaignid // get campaign id from route
+    const id = params.campaignId // get campaign id from route
 
     if (!id || !ObjectId.isValid(id)) {
       return NextResponse.json(
@@ -65,7 +65,7 @@ export async function PATCH(req, context) {
     }
 
     const params = await context.params
-    const id = params.campaignid // get campaign id from route
+    const id = params.campaignId // get campaign id from route
 
     if (!id || !ObjectId.isValid(id)) {
       return NextResponse.json(
