@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Button,
   TextField,
@@ -28,16 +28,8 @@ const textFieldSx = {
 
 export default function LoginPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const [error, setError] = useState("");
-  const [createdMsg, setCreatedMsg] = useState("");
-
-  useEffect(() => {
-    if (searchParams.get("created") === "true") {
-      setCreatedMsg("Account created! Please login to your new account.");
-    }
-  }, [searchParams]);
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -104,7 +96,6 @@ export default function LoginPage() {
           </Typography>
 
           <Box component="form" onSubmit={handleSubmit} noValidate>
-            {createdMsg && <p className="success-msg">{createdMsg}</p>}
 
             <TextField
               margin="normal"
