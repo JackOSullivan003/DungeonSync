@@ -179,6 +179,11 @@ export default function CampaignPage({ user }) {
     if (!campaignId) return
     async function loadCampaign() {
       const res = await fetch(`/api/campaign/${campaignId}`)
+      console.log('Campaign API status:', res.status) //error check
+      if (!res.ok) {
+        console.error('Response:', await res.text())
+        return
+      }
       const data = await res.json()
       setCampaign(data)
       setCampaignTitle(data.title)

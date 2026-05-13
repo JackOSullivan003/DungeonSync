@@ -12,13 +12,13 @@ export async function GET(req, { params }) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 }) // block if not logged in
   }
 
-  const { campaignid } = await params // get campaign id from the route
+  const { campaignId } = await params // get campaign id from the route
 
-  if (!ObjectId.isValid(campaignid)) {
+  if (!ObjectId.isValid(campaignId)) {
     return NextResponse.json({ error: "Invalid campaign" }, { status: 400 }) // reject bad id format
   }
 
-  const campaignObjectId = new ObjectId(campaignid)
+  const campaignObjectId = new ObjectId(campaignId)
   const userObjectId = new ObjectId(user._id)
   const campaigns = await getCollection("Campaigns") // access Campaigns collection
 
@@ -82,9 +82,9 @@ export async function POST(req, context) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 }) // block if not logged in
   }
 
-  const { campaignid } = await context.params // get campaign id from route
+  const { campaignId } = await context.params // get campaign id from route
 
-  if (!ObjectId.isValid(campaignid)) {
+  if (!ObjectId.isValid(campaignId)) {
     return NextResponse.json({ error: "Invalid campaign" }, { status: 400 }) // reject bad id
   }
 
