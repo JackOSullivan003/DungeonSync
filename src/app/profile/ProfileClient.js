@@ -92,22 +92,22 @@ export default function ProfileClient({ user }) {
 
           {/* Avatar with edit overlay */}
           <div
-            style={{ position: 'relative', width: 96, height: 96, display: 'inline-block' }}
+            style={{ position: 'relative', width: 160, height: 160, display: 'inline-block' }}
           >
             {avatarSrc ? (
               <img
                 src={avatarSrc}
                 alt="Your avatar"
                 style={{
-                  width: 96,
-                  height: 96,
+                  width: 160,
+                  height: 160,
                   borderRadius: '50%',
                   objectFit: 'cover',
                   display: 'block',
                 }}
               />
             ) : (
-              <AccountCircleIcon style={{ fontSize: 96 }} />
+              <AccountCircleIcon style={{ fontSize: 160 }} />
             )}
 
             <button
@@ -115,10 +115,10 @@ export default function ProfileClient({ user }) {
               disabled={uploading}
               style={{
                 position: 'absolute',
-                bottom: 0,
-                right: 0,
-                width: 28,
-                height: 28,
+                bottom: 6,
+                right: 6,
+                width: 36,
+                height: 36,
                 borderRadius: '50%',
                 background: '#1976d2',
                 border: '2px solid #1e1e1e',
@@ -130,7 +130,7 @@ export default function ProfileClient({ user }) {
               }}
               title="Upload profile picture"
             >
-              <EditIcon style={{ fontSize: 14, color: '#fff' }} />
+              <EditIcon style={{ fontSize: 18, color: '#fff' }} />
             </button>
           </div>
 

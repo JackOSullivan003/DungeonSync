@@ -29,15 +29,15 @@ export default function PublicProfileClient({ profile, currentUser }) {
               src={avatarSrc}
               alt={`${profile.username}'s avatar`}
               style={{
-                width: 96,
-                height: 96,
+                width: 160,
+                height: 160,
                 borderRadius: '50%',
                 objectFit: 'cover',
                 display: 'block',
               }}
             />
           ) : (
-            <AccountCircleIcon style={{ fontSize: 96 }} />
+            <AccountCircleIcon style={{ fontSize: 160 }} />
           )}
         </div>
 

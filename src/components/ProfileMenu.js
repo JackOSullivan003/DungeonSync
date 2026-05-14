@@ -60,7 +60,6 @@ export default function ProfileMenu({ user }) {
           <p>Hello, {user.username}</p>
           <div className="divider" />
           <button onClick={() => { setOpen(false); router.push('/profile') }}>Profile</button>
-          <button>Settings</button>
           <div className="divider" />
           <button className="danger" onClick={handleLogout}>Log out</button>
         </div>
