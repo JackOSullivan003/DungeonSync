@@ -133,6 +133,10 @@ export async function POST(req, { params }) {
     await channel.publish('message', payload)
   } catch (err) {
     console.error('Ably publish error:', err)
+    return NextResponse.json({ 
+      ...payload, 
+      ablyError: err.message
+    })
   }
 
   return NextResponse.json(payload)
