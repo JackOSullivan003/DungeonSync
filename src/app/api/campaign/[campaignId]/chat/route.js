@@ -98,7 +98,7 @@ export async function POST(req, { params }) {
     doc = {
       campaignId: campaignObjectId,
       userId: userObjectId,
-      username: user.username || user.name || 'Unknown',
+      username: user.username || 'Unknown',
       content: content.trim(),
       type: rollData ? 'roll' : 'message',
       ...(rollData ? { rollData } : {}),
@@ -108,7 +108,7 @@ export async function POST(req, { params }) {
     doc = {
       campaignId: campaignObjectId,
       userId: userObjectId,
-      username: user.username || user.name || 'Unknown',
+      username: user.username || 'Unknown',
       content: content.trim(),
       type: 'message',
       createdAt: new Date(),
@@ -122,9 +122,7 @@ export async function POST(req, { params }) {
     _id: result.insertedId.toString(),
     campaignId: campaignId,
     userId: userObjectId.toString(),
-    avatar: user.avatar ?? null,
-    avatarMimeType: user.avatarMimeType ?? null,
-  }
+  } //removed avatar due to causing messages to be too large for ably
 
   // Publish to Ably
   try {

@@ -158,6 +158,7 @@ export default function Chat({ campaignId, userId, gmId }) {
   const bottomRef = useRef(null)
   const router = useRouter()
   const isDiceRoll = input.trim().startsWith('/')
+  const userCacheRef = useRef({})
 
   function handleUsernameClick(username) {
     if (!username) return
@@ -173,6 +174,17 @@ export default function Chat({ campaignId, userId, gmId }) {
         const res = await fetch(`/api/campaign/${campaignId}/chat`)
         if (!res.ok) return
         const data = await res.json()
+        
+        //store user info for future use so it doesnt have to be sent with ably (causing message to exceed ablys max limit per message)
+        data.forEach(msg => {
+        if (msg.userId && !userCacheRef.current[msg.userId]) {
+          userCacheRef.current[msg.userId] = {
+            avatar: msg.avatar ?? null,
+            avatarMimeType: msg.avatarMimeType ?? null,
+            username: msg.username,
+          }
+        }
+      })
         setMessages(data)
         setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'instant' }), 50)
       } catch (err) {
@@ -192,6 +204,23 @@ export default function Chat({ campaignId, userId, gmId }) {
 
     channel.subscribe('message', (ablyMsg) => {
       const msg = ablyMsg.data
+
+      // add avatar from cache if not present
+      if (msg.userId && !msg.avatar && userCacheRef.current[msg.userId]) {
+      const cached = userCacheRef.current[msg.userId]
+        msg.avatar = cached.avatar
+        msg.avatarMimeType = cached.avatarMimeType
+      }
+
+      // Add new users to cache if not present
+      if (msg.userId && msg.avatar && !userCacheRef.current[msg.userId]) {
+        userCacheRef.current[msg.userId] = {
+          avatar: msg.avatar ?? null,
+          avatarMimeType: msg.avatarMimeType ?? null,
+          username: msg.username,
+        }
+      }
+
       setMessages(prev => {
         if (prev.some(m => m._id === msg._id)) return prev
         return [...prev, msg]
