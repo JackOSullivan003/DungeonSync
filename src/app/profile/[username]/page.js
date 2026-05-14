@@ -19,9 +19,9 @@ export default async function PublicProfilePage({ params }) {
   return <PublicProfileClient profile={{
     _id: found._id.toString(),
     username: found.username,
-    name: found.name,
     bio: found.bio ?? '',
-    avatarUrl: found.avatarUrl ?? null,
+    avatar: found.avatar ?? null,
+    avatarMimeType: found.avatarMimeType ?? null,
     joinedAt: found._id.getTimestamp(),
   }} currentUser={{
     _id: currentUser._id.toString(),

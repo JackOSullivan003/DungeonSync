@@ -18,7 +18,6 @@ export async function GET(req, context) {
   return Response.json({
     _id: found._id.toString(),
     username: found.username,
-    name: found.name,
     bio: found.bio ?? '',
     avatar: found.avatar ?? null,
     avatarMimeType: found.avatarMimeType ?? null,

@@ -42,8 +42,7 @@ export default function PublicProfileClient({ profile, currentUser }) {
         </div>
 
         <div className="profile-form">
-          <h2>{profile.name}</h2>
-          <p className="muted">@{profile.username}</p>
+          <h2>{profile.username}</h2>
           {profile.bio && <p>{profile.bio}</p>}
           <p className="muted">Joined {joinedDate}</p>
         </div>
