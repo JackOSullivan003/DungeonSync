@@ -7,6 +7,7 @@ import buildTree from '@/lib/Buildtreecomp'
 import CreateNewFolderIcon from '@mui/icons-material/CreateNewFolder'
 import CreateNewFileIcon from '@mui/icons-material/NoteAdd'
 import UploadFileIcon from '@mui/icons-material/UploadFile'
+import { getAblyClient } from '@/lib/ably'
 
 export default function FileSidebar({ campaignId, files, setFiles, onSelect, currentfileId, campaign, isDM }) {
 
@@ -17,21 +18,12 @@ export default function FileSidebar({ campaignId, files, setFiles, onSelect, cur
     campaign?.players?.map(p => p.toString()) ?? []
   , [campaign])
 
-  async function loadData() {
-    if (!campaignId) return console.error('campaignId undefined')
-    const res = await fetch(`/api/campaign/${campaignId}/files`)
-    const data = await res.json()
-    if (!Array.isArray(data)) {
-      console.error('Expected files array, got:', data)
-      setFiles([])
-      return
-    }
-    setFiles(data)
+  function broadcastFilesChanged() {
+    const ably = getAblyClient()
+    const channel = ably.channels.get(`campaign:${campaignId}:presence`)
+    channel.publish('files-changed', { triggeredBy: 'files-changed' })
   }
 
-  useEffect(() => {
-    loadData()
-  }, [campaignId])
 
   async function onCreateFile(parentId = null) {
     if (!campaignId) return console.error('campaignId undefined')
@@ -43,6 +35,7 @@ export default function FileSidebar({ campaignId, files, setFiles, onSelect, cur
     const created = await res.json()
     setFiles(prev => [...prev, created])
     onSelect(created._id.toString())
+    broadcastFilesChanged()
   }
 
   async function onCreateFolder(parentId = null) {
@@ -54,6 +47,7 @@ export default function FileSidebar({ campaignId, files, setFiles, onSelect, cur
     })
     const created = await res.json()
     setFiles(prev => [...prev, created])
+    broadcastFilesChanged()
   }
 
   // File Upload - handles md, pdf and images
@@ -97,6 +91,7 @@ export default function FileSidebar({ campaignId, files, setFiles, onSelect, cur
       const created = await res.json()
       setFiles(prev => [...prev, created])
       onSelect(created._id.toString())
+      broadcastFilesChanged()
     }
  
     if (fileType === 'markdown') {
@@ -111,6 +106,7 @@ export default function FileSidebar({ campaignId, files, setFiles, onSelect, cur
     await fetch(`/api/files/${id}`, { method: 'DELETE' })
     setFiles(prev => prev.filter(f => f._id !== id))
     if (currentfileId?.toString() === id?.toString()) onSelect(null)
+    broadcastFilesChanged()
   }
 
   async function onRenameFile(id, title) {
@@ -123,6 +119,7 @@ export default function FileSidebar({ campaignId, files, setFiles, onSelect, cur
     setFiles(prev =>
       prev.map(f => f._id === id ? { ...f, title } : f)
     )
+    broadcastFilesChanged()
   }
 
   async function onPermissionChange(fileId, visibleTo) {

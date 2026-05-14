@@ -224,6 +224,32 @@ export default function CampaignPage({ user }) {
     }
   }, [])
 
+  //file loading lifted into campaign for ably file updating broadcasting
+  async function loadFiles() {
+    if (!campaignId) return
+    const res = await fetch(`/api/campaign/${campaignId}/files`)
+    const data = await res.json()
+    if (Array.isArray(data)) setFiles(data)
+  }
+
+  //ably file updating useEffect
+  useEffect(() => {
+    loadFiles()
+  }, [campaignId])
+
+  useEffect(() => {
+    if (!campaignId) return
+
+    const ably = getAblyClient()
+    const channel = ably.channels.get(`campaign:${campaignId}:presence`)
+
+    channel.subscribe('files-changed', () => {
+      loadFiles()
+    })
+
+    return () => channel.unsubscribe('files-changed')
+  }, [campaignId])
+
   async function saveCampaignTitle() {
     setEditingTitle(false)
     await fetch(`/api/campaign/${campaignId}`, {
