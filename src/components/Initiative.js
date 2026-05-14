@@ -146,7 +146,7 @@ export default function Initiative({ campaignId, isDM }) {
     saveInitiativeState({ ...initiativeRef.current, combatants: nextCombatants })
   }
 
-  
+  function nextTurn() {
     if (sorted.length === 0) return
     const nextIndex = (initiativeRef.current.activeIndex + 1) % sorted.length
     const nextRound = nextIndex === 0 ? initiativeRef.current.round + 1 : initiativeRef.current.round
