@@ -211,11 +211,18 @@ export default function CampaignPage({ user }) {
     }
  
     return () => {
-      destroySpacesClient()
-      destroyAblyClient()
+      const ably = getAblyClient()
+      const channel = ably.channels.get(`campaign:${campaignId}:presence`)
+      channel.presence.leave()
     }
   }, [campaignId, user?.id, sessionColor])
   
+  useEffect(() => {
+    return () => {
+      destroySpacesClient()
+      destroyAblyClient()
+    }
+  }, [])
 
   async function saveCampaignTitle() {
     setEditingTitle(false)
