@@ -72,7 +72,7 @@ useEffect(() => {
         const presence = {}
         presentMembers.forEach(m => {
           if (m.data?.userId) {
-            presence[m.data.userId] = m.data.colour ?? '#888'
+            presence[m.data.userId] = m.data.color ?? '#888'
           }
         })
         setOnlinePresence(presence)
@@ -81,7 +81,7 @@ useEffect(() => {
  
     channel.presence.subscribe((presenceMsg) => {
       const uid = presenceMsg.data?.userId
-      const colour = presenceMsg.data?.colour ?? '#888'
+      const colour = presenceMsg.data?.color ?? '#888'
       if (!uid) return
       setOnlinePresence(prev => {
         const next = { ...prev }
@@ -104,7 +104,7 @@ useEffect(() => {
           const presence = {}
           presentMembers.forEach(m => {
             if (m.data?.userId) {
-              presence[m.data.userId] = m.data.colour ?? '#888'
+              presence[m.data.userId] = m.data.color ?? '#888'
             }
           })
           setOnlinePresence(presence)
