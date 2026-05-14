@@ -306,6 +306,11 @@ export default function MarkdownEditor({
       const updated: FileData = await res.json()
       fileRef.current = updated
       setFile(updated)
+      if (Object.prototype.hasOwnProperty.call(changes, 'title')) {
+        const ably = getAblyClient()
+        const channel = ably.channels.get(`campaign:${campaignIdRef.current}:presence`)
+        channel.publish('files-changed', { triggeredBy: 'editor-title-change' }).catch(() => {})
+      }
       onDirtyChange(false)
     } catch (err) {
       console.error('Failed to save file:', err)
