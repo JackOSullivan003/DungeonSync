@@ -9,12 +9,12 @@ export async function POST(req, context) {
     const user = await getCurrentUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const { campaignid } = await context.params
-    if (!campaignid || !ObjectId.isValid(campaignid))
+    const { campaignId } = await context.params
+    if (!campaignId || !ObjectId.isValid(campaignId))
       return NextResponse.json({ error: 'Invalid campaign id' }, { status: 400 })
 
     const collection = await getCollection('Campaigns')
-    const campaign = await collection.findOne({ _id: new ObjectId(campaignid) })
+    const campaign = await collection.findOne({ _id: new ObjectId(campaignId) })
 
     if (!campaign) return NextResponse.json({ error: 'Campaign not found' }, { status: 404 })
 
@@ -25,7 +25,7 @@ export async function POST(req, context) {
     const inviteCodeExpiry = new Date(Date.now() + 60 * 60 * 1000) // 1 hour from now
 
     await collection.updateOne(
-      { _id: new ObjectId(campaignid) },
+      { _id: new ObjectId(campaignId) },
       { $set: { inviteCode, inviteCodeExpiry } }
     )
 
