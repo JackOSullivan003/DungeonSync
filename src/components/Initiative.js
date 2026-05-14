@@ -1,6 +1,7 @@
-'use client'
+﻿'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { getAblyClient } from '@/lib/ably'
 import AddIcon from '@mui/icons-material/Add'
 import DeleteIcon from '@mui/icons-material/Delete'
 import ArrowUpwardIcon from '@mui/icons-material/ArrowUpward'
@@ -12,7 +13,7 @@ let nextId = 1
 
 function emptyEntry() {
   return {
-    id: nextId++,
+    id: String(nextId++),
     name: '',
     initiative: '',
     hp: '',
@@ -33,52 +34,133 @@ function HPBar({ hp, maxHp }) {
   )
 }
 
-export default function Initiative({ isDM }) {
+function normalizeInitiativeState(state) {
+  const combatants = Array.isArray(state?.combatants) ? state.combatants : []
+  const activeIndex = combatants.length
+    ? Math.max(0, Math.min(Number(state?.activeIndex) || 0, combatants.length - 1))
+    : 0
+
+  return {
+    round: Math.max(1, Number(state?.round) || 1),
+    activeIndex,
+    combatants,
+  }
+}
+
+export default function Initiative({ campaignId, isDM }) {
   const [combatants, setCombatants] = useState([])
   const [activeIndex, setActiveIndex] = useState(0)
+  const [round, setRound] = useState(1)
   const [showAddForm, setShowAddForm] = useState(false)
   const [newEntry, setNewEntry] = useState(emptyEntry())
   const [editingId, setEditingId] = useState(null)
+  const initiativeRef = useRef({ round: 1, activeIndex: 0, combatants: [] })
 
-  // ── Sorted list by initiative descending ─────────────────────────────────
+  useEffect(() => {
+    initiativeRef.current = { round, activeIndex, combatants }
+  }, [round, activeIndex, combatants])
+
+  function applyInitiativeState(next) {
+    const normalized = normalizeInitiativeState(next)
+    setRound(normalized.round)
+    setActiveIndex(normalized.activeIndex)
+    setCombatants(normalized.combatants)
+  }
+
+  async function saveInitiativeState(next) {
+    const normalized = normalizeInitiativeState(next)
+    applyInitiativeState(normalized)
+
+    if (!campaignId || !isDM) return
+
+    try {
+      const res = await fetch(`/api/campaign/${campaignId}/initiative`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(normalized),
+      })
+
+      if (!res.ok) {
+        console.error('Failed to save initiative:', await res.text())
+      }
+    } catch (err) {
+      console.error('Failed to save initiative:', err)
+    }
+  }
+
+  useEffect(() => {
+    if (!campaignId) return
+
+    async function loadInitiative() {
+      try {
+        const res = await fetch(`/api/campaign/${campaignId}/initiative`)
+        if (!res.ok) return
+        const data = await res.json()
+        applyInitiativeState(data)
+      } catch (err) {
+        console.error('Failed to load initiative:', err)
+      }
+    }
+
+    loadInitiative()
+
+    const ably = getAblyClient()
+    const channel = ably.channels.get(`campaign:${campaignId}:initiative`)
+    channel.subscribe('update', (ablyMsg) => {
+      applyInitiativeState(ablyMsg.data)
+    })
+
+    return () => {
+      channel.unsubscribe()
+    }
+  }, [campaignId])
+
+  
   const sorted = [...combatants].sort((a, b) => (Number(b.initiative) || 0) - (Number(a.initiative) || 0))
 
-  // ── Add combatant ─────────────────────────────────────────────────────────
+  
   function addCombatant() {
     if (!newEntry.name.trim()) return
-    setCombatants(prev => [...prev, {
+    const nextCombatants = [...initiativeRef.current.combatants, {
       ...newEntry,
       hp: Number(newEntry.hp) || 0,
       maxHp: Number(newEntry.maxHp) || 0,
       ac: Number(newEntry.ac) || 0,
       initiative: Number(newEntry.initiative) || 0,
-    }])
+    }]
+    saveInitiativeState({ ...initiativeRef.current, combatants: nextCombatants })
     setNewEntry(emptyEntry())
     setShowAddForm(false)
   }
 
-  // ── Remove combatant ──────────────────────────────────────────────────────
+  
   function removeCombatant(id) {
-    setCombatants(prev => prev.filter(c => c.id !== id))
+    const nextCombatants = initiativeRef.current.combatants.filter(c => c.id !== id)
+    saveInitiativeState({ ...initiativeRef.current, combatants: nextCombatants })
     setEditingId(null)
   }
 
-  // ── Update field inline ───────────────────────────────────────────────────
+  
   function updateField(id, field, value) {
-    setCombatants(prev => prev.map(c => c.id === id ? { ...c, [field]: value } : c))
+    const nextCombatants = initiativeRef.current.combatants.map(c => c.id === id ? { ...c, [field]: value } : c)
+    saveInitiativeState({ ...initiativeRef.current, combatants: nextCombatants })
   }
 
-  // ── Next turn ─────────────────────────────────────────────────────────────
-  function nextTurn() {
+  
     if (sorted.length === 0) return
-    setActiveIndex(prev => (prev + 1) % sorted.length)
+    const nextIndex = (initiativeRef.current.activeIndex + 1) % sorted.length
+    const nextRound = nextIndex === 0 ? initiativeRef.current.round + 1 : initiativeRef.current.round
+    saveInitiativeState({
+      ...initiativeRef.current,
+      activeIndex: nextIndex,
+      round: nextRound,
+    })
   }
 
-  // ── Reset ─────────────────────────────────────────────────────────────────
+  
   function reset() {
     if (!confirm('Clear all combatants?')) return
-    setCombatants([])
-    setActiveIndex(0)
+    saveInitiativeState({ round: 1, activeIndex: 0, combatants: [] })
     setEditingId(null)
     setShowAddForm(false)
   }
@@ -102,7 +184,7 @@ export default function Initiative({ isDM }) {
           ⚔️ Initiative
           {sorted.length > 0 && (
             <span style={{ color: '#888', fontWeight: 400, marginLeft: 8, fontSize: '0.78rem' }}>
-              Round · {activeCombatant?.name}
+              Round {round} · {activeCombatant?.name}
             </span>
           )}
         </span>
@@ -187,7 +269,7 @@ export default function Initiative({ isDM }) {
       <div style={{ flex: 1, overflowY: 'auto' }}>
         {sorted.length === 0 ? (
           <div style={{ padding: 24, color: '#444', textAlign: 'center', fontSize: '0.85rem' }}>
-            {isDM ? 'No combatants yet. Click + to add.' : 'Waiting for GM to set up combat…'}
+            {isDM ? 'No combatants yet. Click + to add.' : 'Waiting for GM to set up combat...'}
           </div>
         ) : (
           sorted.map((c, i) => {
@@ -215,7 +297,7 @@ export default function Initiative({ isDM }) {
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                     color: 'white', fontWeight: 800, fontSize: '0.85rem', flexShrink: 0,
                   }}>
-                    {c.initiative || '—'}
+                    {c.initiative || '-'}
                   </div>
 
                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -240,7 +322,7 @@ export default function Initiative({ isDM }) {
                   )}
                 </div>
 
-                {/* Inline edit fields — expanded when GM clicks row */}
+                {/* Inline edit fields - expanded when GM clicks row */}
                 {isEditing && isDM && (
                   <div style={{ marginTop: 8 }} onClick={e => e.stopPropagation()}>
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 60px 60px 60px 60px', gap: 6, marginBottom: 6 }}>
@@ -296,7 +378,7 @@ export default function Initiative({ isDM }) {
   )
 }
 
-// ─── Shared styles ────────────────────────────────────────────────────────────
+
 
 const inputStyle = {
   background: '#1e1e1e',
@@ -330,3 +412,4 @@ const ghostBtnStyle = {
   cursor: 'pointer',
   fontSize: '0.82rem',
 }
+

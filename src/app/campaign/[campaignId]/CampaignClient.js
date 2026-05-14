@@ -426,7 +426,7 @@ export default function CampaignPage({ user }) {
         return <Chat campaignId={campaignId} userId={user?.id} gmId={campaign?.dmId?.toString()} />
 
       case 'initiative':
-        return <Initiative isDM={isDM} />
+        return <Initiative campaignId={campaignId} isDM={isDM} />
 
       default:
         return null
