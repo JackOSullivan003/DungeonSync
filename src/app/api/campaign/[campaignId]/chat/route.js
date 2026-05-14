@@ -73,7 +73,7 @@ export async function POST(req, { params }) {
   if (!ObjectId.isValid(campaignId))
     return NextResponse.json({ error: 'Invalid campaign' }, { status: 400 })
 
-  const campaignObjectId = new ObjectId(campaignid)
+  const campaignObjectId = new ObjectId(campaignId)
   const userObjectId = new ObjectId(user._id)
 
   const campaigns = await getCollection('Campaigns')
@@ -120,7 +120,7 @@ export async function POST(req, { params }) {
   const payload = {
     ...doc,
     _id: result.insertedId.toString(),
-    campaignId: campaignid,
+    campaignId: campaignId,
     userId: userObjectId.toString(),
     avatar: user.avatar ?? null,
     avatarMimeType: user.avatarMimeType ?? null,
@@ -129,7 +129,7 @@ export async function POST(req, { params }) {
   // Publish to Ably
   try {
     const ably = getAblyServer()
-    const channel = ably.channels.get(`campaign:${campaignid}:chat`)
+    const channel = ably.channels.get(`campaign:${campaignId}:chat`)
     await channel.publish('message', payload)
   } catch (err) {
     console.error('Ably publish error:', err)

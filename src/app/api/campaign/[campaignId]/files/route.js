@@ -107,7 +107,7 @@ export async function POST(req, context) {
   // destructure validated data
   const { title, parentId, nodeType, fileType } = parsed.data
 
-  const campaignObjectId = new ObjectId(campaignid)
+  const campaignObjectId = new ObjectId(campaignId)
   const userObjectId = new ObjectId(user._id)
 
   const campaigns = await getCollection("Campaigns") // access Campaigns collection
