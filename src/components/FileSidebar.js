@@ -131,6 +131,7 @@ export default function FileSidebar({ campaignId, files, setFiles, onSelect, cur
     setFiles(prev =>
       prev.map(f => f._id === fileId ? { ...f, visibleTo } : f)
     )
+    broadcastFilesChanged()
   }
 
   useEffect(() => {
