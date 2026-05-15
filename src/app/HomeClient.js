@@ -51,10 +51,7 @@ export default function HomeClient({ user }) {
       {/* HERO */}
       <section className="hero">
         <div className="hero-content">
-          <a title="wirelizard, CC0, via Wikimedia Commons" 
-            href="https://commons.wikimedia.org/wiki/File:Twenty_sided_dice.svg">
-            <img width="160" alt="Twenty sided dice" src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/84/Twenty_sided_dice.svg/330px-Twenty_sided_dice.svg.png?utm_source=commons.wikimedia.org&utm_campaign=index&utm_content=thumbnail"></img>
-          </a>
+          <img width="160" alt="Twenty sided dice" src="/Twenty-Sided-Dice.svg"></img>
           <h1>Run Better D&D Campaigns</h1>
           <p>
             DungeonSync keeps your campaigns, players, notes, and sessions
@@ -78,10 +75,7 @@ export default function HomeClient({ user }) {
         </div>
 
         <div className="hero-image">
-          {/* HERO IMAGE PLACEHOLDER */}
-          <div className="image-placeholder large">
-            Image Placeholder
-          </div>
+          <img src="/images/hero.jpg" alt="Hero" className="hero-img" />
         </div>
       </section>
 
@@ -91,7 +85,7 @@ export default function HomeClient({ user }) {
 
         <div className="feature-grid">
           <div className="feature-card">
-            <div className="image-placeholder">Campaign Image</div>
+            <img src="/images/campaign.jpg" alt="Campaign Management" className="feature-img" />
             <h3>Campaign Management</h3>
             <p>
               Create campaigns, invite players, and manage everything from a
@@ -100,9 +94,7 @@ export default function HomeClient({ user }) {
           </div>
 
           <div className="feature-card">
-            <div className="image-placeholder">
-              
-            </div>
+            <img src="/images/notes.jpg" alt="Session Notes & Lore" className="feature-img" />
             <h3>Session Notes & Lore</h3>
             <p>
               Track NPCs, locations, secrets, and session notes without losing
@@ -111,7 +103,7 @@ export default function HomeClient({ user }) {
           </div>
 
           <div className="feature-card">
-            <div className="image-placeholder">Players Image</div>
+            <img src="/images/players.jpg" alt="Player-Friendly" className="feature-img" />
             <h3>Player-Friendly</h3>
             <p>
               Players only see what they should — DMs stay in control.
